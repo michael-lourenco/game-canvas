@@ -90,7 +90,7 @@ function spawnEnemies() {
             y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
         }
 
-        const color = `hsla(${ Math.random() * 360 }, 100%, 50%, 1)`; // random color
+        const color = `hsla(${ Math.random() * 360 }, 50%, 50%, 1)`; // random color
 
         const angleToCenter = Math.atan2(
             canvas.height / 2 -y, 
@@ -157,10 +157,19 @@ function animate() {
                 
             //objects touch (enemy and projectile)
             if(distanceBetweenProjectile < enemy.radius + projectile.radius -5) {
-                setTimeout(() => {
-                    enemies.splice(enemies.indexOf(enemy), 1);
-                    projectiles.splice(projectiles.indexOf(projectile), 1);
-                }, 0); // use setTimeout to remove the effect of flash object after the animation
+                if(enemy.radius - 10 > 5) {
+                    gsap.to(enemy, {
+                        radius: enemy.radius -10,
+                    })
+                    setTimeout(() => {
+                        projectiles.splice(projectiles.indexOf(projectile), 1);
+                    }, 0); // use setTimeout to remove the effect of flash object after the animation
+                } else {
+                    setTimeout(() => {
+                        enemies.splice(enemies.indexOf(enemy), 1);
+                        projectiles.splice(projectiles.indexOf(projectile), 1);
+                    }, 0); // use setTimeout to remove the effect of flash object after the animation
+                }
             }
         })
     })
