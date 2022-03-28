@@ -69,7 +69,7 @@ class Enemy {
 const x = canvas.width / 2;
 const y = canvas.height / 2;
 
-const player = new Player(x, y, 30, 'blue');
+const player = new Player(x, y, 10, 'white');
 
 const projectiles = [];
 
@@ -80,17 +80,17 @@ function spawnEnemies() {
         const radius = 10 +( Math.random() * 30);
         let x;
         let y;
-        let color;
+
 
         if(Math.random() < 0.5){
             x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
             y = Math.random() * canvas.height;
-            color = 'green';
         } else {
             x = Math.random() * canvas.width;
             y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
-            color = 'blue';
         }
+
+        const color = `hsla(${ Math.random() * 360 }, 100%, 50%, 1)`; // random color
 
         const angleToCenter = Math.atan2(
             canvas.height / 2 -y, 
@@ -108,28 +108,55 @@ function spawnEnemies() {
     }, 1000);
 }
 
+let animationId;
 
 function animate() {
-    requestAnimationFrame(animate);
-    c.clearRect(0, 0, canvas.width, canvas.height);
+    animationId = requestAnimationFrame(animate);
+    c.fillStyle = 'rgb(0,0,0,0.3)';
+    c.fillRect(0, 0, canvas.width, canvas.height);
     player.draw();
 
     projectiles.forEach((projectile) => {
         projectile.update();
+
+        // remove projectile if it goes out of bounds
+        if(projectile.x + projectile.radius < 0  || 
+            projectile.x - projectile.radius > canvas.width || 
+            projectile.y + projectile.radius < 0 || 
+            projectile.y - projectile.radius > canvas.height) {
+                setTimeout(() => {
+                    console.log('removing projectile')
+                    projectiles.splice(projectiles.indexOf(projectile), 1);
+                }); // use setTimeout to remove the effect of flash object after the animation
+        }
     })
 
     enemies.forEach((enemy) => {
         enemy.update();
 
+        // hypot - distance between two points (enemy and player)
+        const distanceBetweenPlayer = Math.hypot(
+            player.x - enemy.x, 
+            player.y - enemy.y
+        );
+
+        //objects touch (enemy and player)
+        if(distanceBetweenPlayer < enemy.radius + player.radius -5) {
+            setTimeout(() => {
+                console.log('END GAME - THE PLAYER HAS HITTED')
+                cancelAnimationFrame(animationId);
+            }, 0); // use setTimeout to remove the effect of flash object after the animation
+        }  
+
         projectiles.forEach((projectile) => {
-            // hypot - distance between two points
-            const distanceBetween = Math.hypot(
+            // hypot - distance between two points (enemy and projectile)
+            const distanceBetweenProjectile = Math.hypot(
                 projectile.x - enemy.x, 
                 projectile.y - enemy.y
                 ) 
                 
-            //objects touch
-            if(distanceBetween < enemy.radius + projectile.radius) {
+            //objects touch (enemy and projectile)
+            if(distanceBetweenProjectile < enemy.radius + projectile.radius -5) {
                 setTimeout(() => {
                     enemies.splice(enemies.indexOf(enemy), 1);
                     projectiles.splice(projectiles.indexOf(projectile), 1);
@@ -154,7 +181,7 @@ window.addEventListener('click', (event) =>{
             canvas.width / 2, 
             canvas.height / 2, 
             5, 
-            'red', 
+            'white', 
             velocity
         )
     )
