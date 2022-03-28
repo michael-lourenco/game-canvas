@@ -27,3 +27,7 @@ Add start game button
 Add game over UI
 
 Add restart button
+
+# After video 
+
+Refactor code
