@@ -77,16 +77,19 @@ const enemies = [];
 
 function spawnEnemies() {
     setInterval(() => {
-        const radius = Math.random() * (30 - 4);
+        const radius = 10 +( Math.random() * 30);
         let x;
         let y;
+        let color;
 
         if(Math.random() < 0.5){
             x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
             y = Math.random() * canvas.height;
+            color = 'green';
         } else {
             x = Math.random() * canvas.width;
             y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
+            color = 'blue';
         }
 
         const angleToCenter = Math.atan2(
@@ -99,7 +102,7 @@ function spawnEnemies() {
             y: Math.sin(angleToCenter) * 5
         }
     
-        const enemy = new Enemy(x, y, radius, 'green', velocity);
+        const enemy = new Enemy(x, y, radius, color, velocity);
         enemies.push(enemy);
         console.log(enemy)
     }, 1000);
@@ -117,6 +120,22 @@ function animate() {
 
     enemies.forEach((enemy) => {
         enemy.update();
+
+        projectiles.forEach((projectile) => {
+            // hypot - distance between two points
+            const distanceBetween = Math.hypot(
+                projectile.x - enemy.x, 
+                projectile.y - enemy.y
+                ) 
+                
+            //objects touch
+            if(distanceBetween < enemy.radius + projectile.radius) {
+                setTimeout(() => {
+                    enemies.splice(enemies.indexOf(enemy), 1);
+                    projectiles.splice(projectiles.indexOf(projectile), 1);
+                }, 0); // use setTimeout to remove the effect of flash object after the animation
+            }
+        })
     })
 }
 
