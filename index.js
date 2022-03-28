@@ -4,6 +4,8 @@ const c = canvas.getContext('2d');
 
 canvas.width = innerWidth;
 canvas.height = innerHeight;
+
+const score = document.querySelector('#score');
 class Player {
     constructor(x, y, radius, color) {
         this.x = x;
@@ -139,6 +141,7 @@ function spawnEnemies() {
 }
 
 let animationId;
+let scoreValue = 0;
 
 function animate() {
     animationId = requestAnimationFrame(animate);
@@ -195,6 +198,7 @@ function animate() {
                 
             //objects touch (enemy and projectile)
             if(distanceBetweenProjectile < enemy.radius + projectile.radius -5) {
+
                 //create explosions
                 for (let i =0; i < enemy.radius * 2; i++) {
                     particles.push(new Particle(
@@ -210,6 +214,10 @@ function animate() {
                 }
 
                 if(enemy.radius - 10 > 5) {
+                    // increase our score
+                    scoreValue += 100;
+                    score.innerHTML = scoreValue;
+
                     gsap.to(enemy, {
                         radius: enemy.radius -10,
                     })
@@ -217,6 +225,9 @@ function animate() {
                         projectiles.splice(projectiles.indexOf(projectile), 1);
                     }, 0); // use setTimeout to remove the effect of flash object after the animation
                 } else {
+                    // remove from scene altogether
+                    scoreValue += 250;
+                    score.innerHTML = scoreValue;
                     setTimeout(() => {
                         enemies.splice(enemies.indexOf(enemy), 1);
                         projectiles.splice(projectiles.indexOf(projectile), 1);
