@@ -33,3 +33,5 @@ Add restart button
 Refactor code
 
 Extracting classes
+
+Extracting css
