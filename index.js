@@ -35,17 +35,50 @@ class Projectile {
         c.fillStyle = this.color;
         c.fill();
     }
+
+    update() {
+        this.draw();
+        this.x = this.x + this.velocity.x;
+        this.y = this.y + this.velocity.y;
+    }
 }
 
 const x = canvas.width / 2;
 const y = canvas.height / 2;
 
-const player = new Player(x, y, 20, 'blue');
-player.draw();
+const player = new Player(x, y, 30, 'blue');
+
+
+const projectiles = [];
+
+function animate() {
+    requestAnimationFrame(animate);
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    player.draw();
+    projectiles.forEach((projectile) => {
+        projectile.update();
+    })
+}
 
 window.addEventListener('click', (event) =>{
-    console.log(event.clientX, event.clientY);
-    const projectile = new Projectile(event.clientX, event.clientY, 5, 'red', null);
-    projectile.draw();
+    console.log(event.clientX, event.clientY);  
+
+    const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2); 
+
+    const velocity = {
+        x: Math.cos(angle) * 10,
+        y: Math.sin(angle) * 10
+    }
+
+    projectiles.push(
+        new Projectile(
+            canvas.width / 2, 
+            canvas.height / 2, 
+            5, 
+            'red', 
+            velocity
+        )
+    )
 })
 
+animate();
