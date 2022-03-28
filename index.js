@@ -8,6 +8,9 @@ canvas.height = innerHeight;
 const score = document.querySelector('#score');
 const startGameButton = document.querySelector('#startGameButton');
 const containerStart = document.querySelector('#containerStart');
+const scoreStartText = document.querySelector('#scoreStartText');
+
+
 class Player {
     constructor(x, y, radius, color) {
         this.x = x;
@@ -103,11 +106,21 @@ class Particle {
 const x = canvas.width / 2;
 const y = canvas.height / 2;
 
-const player = new Player(x, y, 10, 'white');
+let player = new Player(x, y, 10, 'white');
 
-const projectiles = [];
-const particles = [];
-const enemies = [];
+let projectiles = [];
+let particles = [];
+let enemies = [];
+
+function init() {
+    player = new Player(x, y, 10, 'white');
+    projectiles = [];
+    particles = [];
+    enemies = [];
+    scoreValue = 0;
+    score.innerHTML = scoreValue;
+    scoreStartText.innerHTML = scoreValue;
+}
 
 function spawnEnemies() {
     setInterval(() => {
@@ -187,10 +200,11 @@ function animate() {
         if(distanceBetweenPlayer < enemy.radius + player.radius -5) {
             setTimeout(() => {
                 console.log('END GAME - THE PLAYER HAS HITTED')
-                containerStart.style.display = 'flex';
-                containerStart.style.opacity = 1;
-                containerStart.style.zIndex = 100;
+                
                 cancelAnimationFrame(animationId);
+                scoreStartText.innerHTML = scoreValue;
+                containerStart.style.display = 'flex';
+                
             }, 0); // use setTimeout to remove the effect of flash object after the animation
         }  
 
@@ -265,9 +279,8 @@ window.addEventListener('click', (event) =>{
 })
 
 startGameButton.addEventListener('click', () => {
-    containerStart.style.display = 'none';
-    containerStart.style.opacity = 0;
-    containerStart.style.zIndex = -1;
+    init();
     animate();
     spawnEnemies();
+    containerStart.style.display = 'none';
 })
