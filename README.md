@@ -12,6 +12,6 @@ Colorize game
 Shrink enemies on hit
 Create particle explosion on hit
 Add score
+Add start game button
 Add game over UI
 Add restart button
-Add start game button

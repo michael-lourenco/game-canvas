@@ -6,6 +6,8 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 const score = document.querySelector('#score');
+const startGameButton = document.querySelector('#startGameButton');
+const containerStart = document.querySelector('#containerStart');
 class Player {
     constructor(x, y, radius, color) {
         this.x = x;
@@ -185,6 +187,9 @@ function animate() {
         if(distanceBetweenPlayer < enemy.radius + player.radius -5) {
             setTimeout(() => {
                 console.log('END GAME - THE PLAYER HAS HITTED')
+                containerStart.style.display = 'flex';
+                containerStart.style.opacity = 1;
+                containerStart.style.zIndex = 100;
                 cancelAnimationFrame(animationId);
             }, 0); // use setTimeout to remove the effect of flash object after the animation
         }  
@@ -259,5 +264,10 @@ window.addEventListener('click', (event) =>{
     )
 })
 
-animate();
-spawnEnemies();
+startGameButton.addEventListener('click', () => {
+    containerStart.style.display = 'none';
+    containerStart.style.opacity = 0;
+    containerStart.style.zIndex = -1;
+    animate();
+    spawnEnemies();
+})
