@@ -1,15 +1,17 @@
+import { Canvas } from "./core/Canvas.js";
 import { FRICTION } from "./env/index.js";
 import { Player } from "./core/Player.js";
 import { Enemy } from "./core/Enemy.js";
 import { Particle } from "./core/Particle.js";
 import { Projectile } from "./core/Projectile.js";
 // canvas and context
-const canvas = document.querySelector('canvas');
+//const canvas = document.querySelector('canvas');
 
-const context = canvas.getContext('2d');
+// create the canvas and reporting list
+let canvas = new Canvas('myCanvas', document.body, window.innerWidth, window.innerHeight);
+canvas.create();
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const { context } = canvas;
 
 // html elements
 const score = document.querySelector('#score');
