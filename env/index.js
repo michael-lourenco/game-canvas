@@ -1,1 +1,3 @@
-const friction = 0.99;
+const FRICTION = 0.99;
+
+export { FRICTION };

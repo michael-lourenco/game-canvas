@@ -1,11 +1,15 @@
-
+import { FRICTION } from "./env/index.js";
+import { Player } from "./core/Player.js";
+import { Enemy } from "./core/Enemy.js";
+import { Particle } from "./core/Particle.js";
+import { Projectile } from "./core/Projectile.js";
 // canvas and context
 const canvas = document.querySelector('canvas');
 
 const context = canvas.getContext('2d');
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 // html elements
 const score = document.querySelector('#score');
@@ -13,28 +17,43 @@ const startGameButton = document.querySelector('#startGameButton');
 const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
 
-
 // center coordinates x and y on screen/canvas
-const middleScreenX = canvas.width / 2;
-const middleScreenY = canvas.height / 2;
+const MIDDLE_SCREEN_X = canvas.width / 2;
+const MIDDLE_SCREEN_Y = canvas.height / 2;
 
 // initial data for game objects
-let player = new Player(middleScreenX, middleScreenY, 10, 'white');
+let player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, 10, 'white');
 let projectiles = [];
 let particles = [];
 let enemies = [];
+let animationId;
+let scoreValue = 0;
 
-function init() {
-    // reset data
-    player = new Player(middleScreenX, middleScreenY, 10, 'white');
+
+function resetData() {
+    player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, 10, 'white');
     projectiles = [];
     particles = [];
     enemies = [];
     scoreValue = 0;
+}
 
-    // reset html elements
+function resetHtmlElements() {
     score.innerHTML = scoreValue;
     scoreStartText.innerHTML = scoreValue;
+}
+
+function init() {
+    resetData()
+    resetHtmlElements();
+}
+
+function luckCoin() {
+    return Math.random() < 0.5 ? -1 : 1;
+}
+
+function randomColor() {
+    return `hsla(${ Math.random() * 360 }, 50%, 50%, 1)`;
 }
 
 function spawnEnemies() {
@@ -43,15 +62,16 @@ function spawnEnemies() {
         let x;
         let y;
 
-        if(Math.random() < 0.5){
-            x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
+
+        if(luckCoin()){
+            x = luckCoin() ? 0 - radius : canvas.width + radius;
             y = Math.random() * canvas.height;
         } else {
             x = Math.random() * canvas.width;
-            y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
+            y = luckCoin() ? 0 - radius : canvas.height + radius;
         }
 
-        const color = `hsla(${ Math.random() * 360 }, 50%, 50%, 1)`; // random color
+        const color = randomColor();
 
         const angleToCenter = Math.atan2(
             canvas.height / 2 -y, 
@@ -63,13 +83,10 @@ function spawnEnemies() {
             y: Math.sin(angleToCenter) * 5
         }
     
-        const enemy = new Enemy(x, y, radius, color, velocity);
+        const enemy = new Enemy(context, x, y, radius, color, velocity);
         enemies.push(enemy);
     }, 1000);
 }
-
-let animationId;
-let scoreValue = 0;
 
 function animate() {
     animationId = requestAnimationFrame(animate);
@@ -114,7 +131,7 @@ function animate() {
         //objects touch (enemy and player)
         if(distanceBetweenPlayer < enemy.radius + player.radius -5) {
             setTimeout(() => {
-                //'END GAME - THE PLAYER HAS HITTED'
+                //'end game - the player has hitted'
                 cancelAnimationFrame(animationId);
                 scoreStartText.innerHTML = scoreValue;
                 containerStart.style.display = 'flex';
@@ -134,6 +151,7 @@ function animate() {
                 //create explosions
                 for (let i =0; i < enemy.radius * 2; i++) {
                     particles.push(new Particle(
+                        context,
                         projectile.x,
                         projectile.y,
                         Math.random() * 2,
@@ -171,7 +189,7 @@ function animate() {
     })
 }
 
-window.addEventListener('click', (event) =>{
+window.addEventListener('click', (event) => {
     const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2); 
 
     const velocity = {
@@ -181,14 +199,16 @@ window.addEventListener('click', (event) =>{
 
     projectiles.push(
         new Projectile(
+            context,
             canvas.width / 2, 
             canvas.height / 2, 
             5, 
             'white', 
-            velocity
+            velocity,
+            FRICTION
         )
     );
-})
+});
 
 startGameButton.addEventListener('click', () => {
     init();
