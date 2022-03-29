@@ -1,0 +1,1 @@
+const friction = 0.99;
