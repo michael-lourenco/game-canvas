@@ -1,10 +1,10 @@
 class Player {
     constructor(context, x, y, radius, color) {
+        this.context = context;
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.color = color;
-        this.context = context;
     }
 
     draw() {

@@ -1,14 +1,14 @@
+import { CONFIG } from "./env/index.js";
 import { Canvas } from "./core/Canvas.js";
-import { FRICTION } from "./env/index.js";
 import { Player } from "./core/Player.js";
 import { Enemy } from "./core/Enemy.js";
 import { Particle } from "./core/Particle.js";
 import { Projectile } from "./core/Projectile.js";
-// canvas and context
-//const canvas = document.querySelector('canvas');
 
-// create the canvas and reporting list
-let canvas = new Canvas('myCanvas', document.body, window.innerWidth, window.innerHeight);
+const { CANVAS, FRICTION, GAME_STATUS, PLAYER_INITIAL, SCORE_INITIAL, PROJECTILE_INITIAL } = CONFIG;
+
+// create the canvas
+let canvas = new Canvas('gameCanvas', document.body, window.innerWidth, window.innerHeight);
 canvas.create();
 
 const { context } = canvas;
@@ -24,30 +24,34 @@ const MIDDLE_SCREEN_X = canvas.width / 2;
 const MIDDLE_SCREEN_Y = canvas.height / 2;
 
 // initial data for game objects
-let player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, 10, 'white');
+let player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, PLAYER_INITIAL.RADIUS, PLAYER_INITIAL.COLOR);
 let projectiles = [];
 let particles = [];
 let enemies = [];
 let animationId;
-let scoreValue = 0;
-
+let scoreValue = SCORE_INITIAL.VALUE;
+let gameStatus = GAME_STATUS.START;
 
 function resetData() {
-    player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, 10, 'white');
+    player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, PLAYER_INITIAL.RADIUS, PLAYER_INITIAL.COLOR);
     projectiles = [];
     particles = [];
     enemies = [];
-    scoreValue = 0;
+    scoreValue = SCORE_INITIAL.VALUE;
+    gameStatus = GAME_STATUS.START;
 }
 
 function resetHtmlElements() {
-    score.innerHTML = scoreValue;
-    scoreStartText.innerHTML = scoreValue;
+    containerStart.style.display = 'none';
+    score.innerHTML = SCORE_INITIAL.VALUE;
+    scoreStartText.innerHTML = SCORE_INITIAL.VALUE;
 }
 
 function init() {
     resetData()
     resetHtmlElements();
+    animate();
+    spawnEnemies();
 }
 
 function luckCoin() {
@@ -59,54 +63,55 @@ function randomColor() {
 }
 
 function spawnEnemies() {
-    setInterval(() => {
-        const radius = 10 +( Math.random() * 30);
-        let x;
-        let y;
+    let refreshIntervalId = setInterval(() => {
+        if(gameStatus === GAME_STATUS.START){
+                console.log('gameStatus: ', gameStatus);
+            console.log('CHAMOU');
 
-
-        if(luckCoin()){
-            x = luckCoin() ? 0 - radius : canvas.width + radius;
-            y = Math.random() * canvas.height;
-        } else {
-            x = Math.random() * canvas.width;
-            y = luckCoin() ? 0 - radius : canvas.height + radius;
-        }
-
-        const color = randomColor();
-
-        const angleToCenter = Math.atan2(
-            canvas.height / 2 -y, 
-            canvas.width / 2 -x
-        ); 
-
-        const velocity = {
-            x: Math.cos(angleToCenter) * 5,
-            y: Math.sin(angleToCenter) * 5
-        }
+            const radius = 10 +( Math.random() * 30);
+            let x;
+            let y;
     
-        const enemy = new Enemy(context, x, y, radius, color, velocity);
-        enemies.push(enemy);
+            if(luckCoin()){
+                x = luckCoin() ? 0 - radius : canvas.width + radius;
+                y = Math.random() * canvas.height;
+            } else {
+                x = Math.random() * canvas.width;
+                y = luckCoin() ? 0 - radius : canvas.height + radius;
+            }
+    
+            const color = randomColor();
+    
+            const angleToCenter = Math.atan2(
+                canvas.height / 2 -y, 
+                canvas.width / 2 -x
+            ); 
+    
+            const velocity = {
+                x: Math.cos(angleToCenter) * 5,
+                y: Math.sin(angleToCenter) * 5
+            }
+        
+            const enemy = new Enemy(context, x, y, radius, color, velocity);
+            enemies.push(enemy);
+        } else {
+            clearInterval(refreshIntervalId);
+        }
     }, 1000);
 }
 
-function animate() {
-    animationId = requestAnimationFrame(animate);
-    
-    context.fillStyle = 'rgb(0,0,0,0.3)';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-
-    player.draw();
-
-    particles.forEach(particle => {
+function handleParticles(particlesToHandle) {
+    particlesToHandle.forEach(particle => {
         if(particle.alpha <= 0){
-            particles.splice(particles.indexOf(particle), 1);
+            particlesToHandle.splice(particlesToHandle.indexOf(particle), 1);
         } else{
             particle.update();
         }
     })
+}
 
-    projectiles.forEach((projectile) => {
+function handleProjectiles(projectilesToHandle) {
+    projectilesToHandle.forEach((projectile) => {
         projectile.update();
 
         // remove projectile if it goes out of bounds
@@ -116,32 +121,36 @@ function animate() {
             projectile.y - projectile.radius > canvas.height) {
                 setTimeout(() => {
                     // removing projectile from array
-                    projectiles.splice(projectiles.indexOf(projectile), 1);
+                    projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
                 }); // use setTimeout to remove the effect of flash object after the animation
         }
     })
+}
 
-    enemies.forEach((enemy) => {
+function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, playerToHandle, projectilesToHandle) {
+    enemiesToHandle.forEach((enemy) => {
         enemy.update();
 
         // hypot - distance between two points (enemy and player)
         const distanceBetweenPlayer = Math.hypot(
-            player.x - enemy.x, 
-            player.y - enemy.y
+            playerToHandle.x - enemy.x, 
+            playerToHandle.y - enemy.y
         );
 
         //objects touch (enemy and player)
-        if(distanceBetweenPlayer < enemy.radius + player.radius -5) {
+        if(distanceBetweenPlayer < enemy.radius + playerToHandle.radius -5) {
             setTimeout(() => {
                 //'end game - the player has hitted'
                 cancelAnimationFrame(animationId);
                 scoreStartText.innerHTML = scoreValue;
                 containerStart.style.display = 'flex';
+                gameStatus = GAME_STATUS.END;
+                console.log('gameStatus: ', gameStatus);
                 
             }, 0); // use setTimeout to remove the effect of flash object after the animation
         }  
 
-        projectiles.forEach((projectile) => {
+        projectilesToHandle.forEach((projectile) => {
             // hypot - distance between two points (enemy and projectile)
             const distanceBetweenProjectile = Math.hypot(
                 projectile.x - enemy.x, 
@@ -152,8 +161,8 @@ function animate() {
             if(distanceBetweenProjectile < enemy.radius + projectile.radius -5) {
                 //create explosions
                 for (let i =0; i < enemy.radius * 2; i++) {
-                    particles.push(new Particle(
-                        context,
+                    particlesToHandle.push(new Particle(
+                        contextToHandle,
                         projectile.x,
                         projectile.y,
                         Math.random() * 2,
@@ -161,7 +170,8 @@ function animate() {
                         {
                             x: (Math.random() - 0.5) * (Math.random() * 6),
                             y: (Math.random() - 0.5) * (Math.random() * 6)
-                        }
+                        },
+                        FRICTION
                     ))
                 }
 
@@ -175,15 +185,15 @@ function animate() {
                     });
 
                     setTimeout(() => {
-                        projectiles.splice(projectiles.indexOf(projectile), 1);
+                        projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
                     }, 0); // use setTimeout to remove the effect of flash object after the animation
                 } else {
                     // remove from scene altogether
                     scoreValue += 250;
                     score.innerHTML = scoreValue;
                     setTimeout(() => {
-                        enemies.splice(enemies.indexOf(enemy), 1);
-                        projectiles.splice(projectiles.indexOf(projectile), 1);
+                        enemiesToHandle.splice(enemiesToHandle.indexOf(enemy), 1);
+                        projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
                     }, 0); // use setTimeout to remove the effect of flash object after the animation
                 }
             }
@@ -191,12 +201,28 @@ function animate() {
     })
 }
 
+function animate() {
+    animationId = requestAnimationFrame(animate);
+    
+    context.fillStyle = CANVAS.RGB;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    player.draw();
+
+    handleParticles(particles);
+
+    handleProjectiles(projectiles);
+
+    handleEnemies(context, enemies, particles, player, projectiles)
+
+}
+
 window.addEventListener('click', (event) => {
     const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2); 
 
     const velocity = {
-        x: Math.cos(angle) * 10,
-        y: Math.sin(angle) * 10
+        x: Math.cos(angle) * 8,
+        y: Math.sin(angle) * 8
     }
 
     projectiles.push(
@@ -204,17 +230,13 @@ window.addEventListener('click', (event) => {
             context,
             canvas.width / 2, 
             canvas.height / 2, 
-            5, 
-            'white', 
-            velocity,
-            FRICTION
+            PROJECTILE_INITIAL.RADIUS, 
+            PROJECTILE_INITIAL.COLOR, 
+            velocity
         )
     );
 });
 
 startGameButton.addEventListener('click', () => {
     init();
-    animate();
-    spawnEnemies();
-    containerStart.style.display = 'none';
 });

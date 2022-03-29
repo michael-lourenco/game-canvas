@@ -1,5 +1,6 @@
 class Particle {
     constructor(context, x, y, radius, color, velocity, friction) {
+        this.context = context;
         this.x = x;
         this.y = y;
         this.radius = radius;
@@ -7,7 +8,6 @@ class Particle {
         this.velocity = velocity;
         this.alpha = 1;
         this.friction = friction;
-        this.context = context;
     }
 
     draw() {
