@@ -201,13 +201,23 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
     })
 }
 
+function handleCanvas(canvasToHandle) {
+    const { context, width, height} = canvasToHandle;
+    
+    context.fillStyle = CANVAS.RGB;
+    context.fillRect(0, 0, width, height);
+}
+
+function handlePlayer(playerToHandle) {
+    playerToHandle.draw();
+}
+
 function animate() {
     animationId = requestAnimationFrame(animate);
     
-    context.fillStyle = CANVAS.RGB;
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    handleCanvas(canvas);
 
-    player.draw();
+    handlePlayer(player);
 
     handleParticles(particles);
 
