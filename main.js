@@ -1,11 +1,28 @@
 import { CONFIG } from "./env/index.js";
-import { Canvas } from "./core/Canvas.js";
-import { Player } from "./core/Player.js";
-import { Enemy } from "./core/Enemy.js";
-import { Particle } from "./core/Particle.js";
-import { Projectile } from "./core/Projectile.js";
+import {
+    createLuckCoin,
+    createRandomColor,
+    createAngleToCenter,
+    createInitialPosition,
+    createVelocity
+} from "./utils/index.js";
+import { 
+    Canvas, 
+    Enemy, 
+    Particle, 
+    Player, 
+    Projectile 
+} from "./core/index.js";
 
-const { CANVAS, FRICTION, GAME_STATUS, PLAYER_INITIAL, SCORE_INITIAL, PROJECTILE_INITIAL } = CONFIG;
+const { 
+    CANVAS, 
+    ENEMY_INITIAL,
+    FRICTION, 
+    GAME_STATUS, 
+    PLAYER_INITIAL, 
+    PROJECTILE_INITIAL,
+    SCORE_INITIAL, 
+} = CONFIG;
 
 // create the canvas
 let canvas = new Canvas('gameCanvas', document.body, window.innerWidth, window.innerHeight);
@@ -51,49 +68,43 @@ function init() {
     resetData()
     resetHtmlElements();
     animate();
-    spawnEnemies();
+    spawnEnemies(context, canvas, enemies);
 }
 
-function luckCoin() {
-    return Math.random() < 0.5 ? -1 : 1;
-}
-
-function randomColor() {
-    return `hsla(${ Math.random() * 360 }, 50%, 50%, 1)`;
-}
-
-function spawnEnemies() {
+function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray) {
     let refreshIntervalId = setInterval(() => {
         if(gameStatus === GAME_STATUS.START){
-                console.log('gameStatus: ', gameStatus);
-            console.log('CHAMOU');
-
-            const radius = 10 +( Math.random() * 30);
-            let x;
-            let y;
+            const radius = 10 + ( Math.random() * 30);
+ 
+            const initialPosition = createInitialPosition(
+                createLuckCoin(),
+                createLuckCoin(),
+                radius, 
+                canvasToHandle.width, 
+                canvasToHandle.height
+            );
     
-            if(luckCoin()){
-                x = luckCoin() ? 0 - radius : canvas.width + radius;
-                y = Math.random() * canvas.height;
-            } else {
-                x = Math.random() * canvas.width;
-                y = luckCoin() ? 0 - radius : canvas.height + radius;
-            }
+            const color = createRandomColor();
     
-            const color = randomColor();
-    
-            const angleToCenter = Math.atan2(
-                canvas.height / 2 -y, 
-                canvas.width / 2 -x
+            const angleToCenter = createAngleToCenter(
+                canvasToHandle.width,
+                canvasToHandle.height, 
+                initialPosition.x,
+                initialPosition.y, 
             ); 
-    
-            const velocity = {
-                x: Math.cos(angleToCenter) * 5,
-                y: Math.sin(angleToCenter) * 5
-            }
+
+            const velocity = createVelocity(angleToCenter, ENEMY_INITIAL.VELOCITY_FACTOR);
         
-            const enemy = new Enemy(context, x, y, radius, color, velocity);
-            enemies.push(enemy);
+            const enemy = new Enemy(
+                contextToHandle, 
+                initialPosition.x, 
+                initialPosition.y, 
+                radius, 
+                color, 
+                velocity
+            );
+
+            enemiesArray.push(enemy);
         } else {
             clearInterval(refreshIntervalId);
         }
@@ -145,7 +156,6 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                 scoreStartText.innerHTML = scoreValue;
                 containerStart.style.display = 'flex';
                 gameStatus = GAME_STATUS.END;
-                console.log('gameStatus: ', gameStatus);
                 
             }, 0); // use setTimeout to remove the effect of flash object after the animation
         }  
@@ -168,8 +178,8 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                         Math.random() * 2,
                         enemy.color,
                         {
-                            x: (Math.random() - 0.5) * (Math.random() * 6),
-                            y: (Math.random() - 0.5) * (Math.random() * 6)
+                            x: (Math.random() - 0.5) * (Math.random() * 3),
+                            y: (Math.random() - 0.5) * (Math.random() * 3)
                         },
                         FRICTION
                     ))
@@ -230,10 +240,7 @@ function animate() {
 window.addEventListener('click', (event) => {
     const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2); 
 
-    const velocity = {
-        x: Math.cos(angle) * 8,
-        y: Math.sin(angle) * 8
-    }
+    const velocity = createVelocity(angle, PROJECTILE_INITIAL.VELOCITY_FACTOR);
 
     projectiles.push(
         new Projectile(

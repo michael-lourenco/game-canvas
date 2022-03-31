@@ -10,7 +10,7 @@ class Canvas {
   // new class stuff above here
   create() {
     if(this.context !== null) {
-      console.log('Canvas already created!');
+      // Canvas already created!
       return;
     } else {
       let divWrapper = document.createElement('div');
