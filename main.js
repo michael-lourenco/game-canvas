@@ -19,28 +19,29 @@ const {
     ENEMY_INITIAL,
     FRICTION, 
     GAME_STATUS, 
+    PARTICLE_INITIAL,
     PLAYER_INITIAL, 
     PROJECTILE_INITIAL,
     SCORE_INITIAL, 
 } = CONFIG;
 
-// create the canvas
+// CREATE THE CANVAS
 let canvas = new Canvas('gameCanvas', document.body, window.innerWidth, window.innerHeight);
 canvas.create();
 
 const { context } = canvas;
 
-// html elements
+// HTML ELEMENTS
 const score = document.querySelector('#score');
 const startGameButton = document.querySelector('#startGameButton');
 const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
 
-// center coordinates x and y on screen/canvas
+// CREATE COORDINATES X AND Y ON SCREENV/CANVAS
 const MIDDLE_SCREEN_X = canvas.width / 2;
 const MIDDLE_SCREEN_Y = canvas.height / 2;
 
-// initial data for game objects
+// INIITAL DATA FOR GAME OBJECTS
 let player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, PLAYER_INITIAL.RADIUS, PLAYER_INITIAL.COLOR);
 let projectiles = [];
 let particles = [];
@@ -49,6 +50,7 @@ let animationId;
 let scoreValue = SCORE_INITIAL.VALUE;
 let gameStatus = GAME_STATUS.START;
 
+// DATA
 function resetData() {
     player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, PLAYER_INITIAL.RADIUS, PLAYER_INITIAL.COLOR);
     projectiles = [];
@@ -58,6 +60,7 @@ function resetData() {
     gameStatus = GAME_STATUS.START;
 }
 
+// ELEMENTS HTML
 function resetHtmlElements() {
     containerStart.style.display = 'none';
     score.innerHTML = SCORE_INITIAL.VALUE;
@@ -71,6 +74,7 @@ function init() {
     spawnEnemies(context, canvas, enemies);
 }
 
+// HANDLERS
 function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray) {
     let refreshIntervalId = setInterval(() => {
         if(gameStatus === GAME_STATUS.START){
@@ -178,8 +182,8 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                         Math.random() * 2,
                         enemy.color,
                         {
-                            x: (Math.random() - 0.5) * (Math.random() * 3),
-                            y: (Math.random() - 0.5) * (Math.random() * 3)
+                            x: (Math.random() - 0.5) * (Math.random() * PARTICLE_INITIAL.VELOCITY_FACTOR),
+                            y: (Math.random() - 0.5) * (Math.random() * PARTICLE_INITIAL.VELOCITY_FACTOR)
                         },
                         FRICTION
                     ))
@@ -237,6 +241,7 @@ function animate() {
 
 }
 
+// INTERACTION
 window.addEventListener('click', (event) => {
     const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2); 
 

@@ -11,6 +11,9 @@ const CONFIG = {
         PLAYING: 1,
         END: 2,
     },
+    PARTICLE_INITIAL: {
+        VELOCITY_FACTOR: 3,
+    },
     PLAYER_INITIAL: {
         COLOR: 'white',
         RADIUS: 10,
