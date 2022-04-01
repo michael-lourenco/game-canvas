@@ -45,8 +45,6 @@ function createVelocity(angle, multiplyFactor = 1) {
     }
 }
 
-
-
 export {
     createLuckCoin,
     createRandomColor,
