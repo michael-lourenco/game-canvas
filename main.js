@@ -5,6 +5,7 @@ import {
     createRandomColor,
     createAngleToCenter,
     createInitialPosition,
+    createRandomIntegerBetweenTwoNumbers,
     createVelocity
 } from "./utils/index.js";
 import { 
@@ -23,7 +24,7 @@ const {
     PARTICLE_INITIAL,
     PLAYER_INITIAL, 
     PROJECTILE_INITIAL,
-    SCORE_INITIAL, 
+    ECONOMY_INITIAL, 
 } = CONFIG;
 
 // CREATE THE CANVAS
@@ -34,9 +35,11 @@ const { context } = canvas;
 
 // HTML ELEMENTS
 const score = document.querySelector('#score');
+const xp = document.querySelector('#xp');
 const startGameButton = document.querySelector('#startGameButton');
 const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
+const xpStartText = document.querySelector('#xpStartText');
 
 // CREATE COORDINATES X AND Y ON SCREENV/CANVAS
 const MIDDLE_SCREEN_X = canvas.width / 2;
@@ -48,7 +51,8 @@ let projectiles = [];
 let particles = [];
 let enemies = [];
 let animationId;
-let scoreValue = SCORE_INITIAL.VALUE;
+let scoreValue = ECONOMY_INITIAL.SCORE;
+let xpValue = ECONOMY_INITIAL.XP;
 let gameStatus = GAME_STATUS.START;
 
 // DATA
@@ -57,15 +61,18 @@ function resetData() {
     projectiles = [];
     particles = [];
     enemies = [];
-    scoreValue = SCORE_INITIAL.VALUE;
+    scoreValue = ECONOMY_INITIAL.SCORE;
+    xpValue = ECONOMY_INITIAL.XP;
     gameStatus = GAME_STATUS.START;
 }
 
 // ELEMENTS HTML
 function resetHtmlElements() {
     containerStart.style.display = 'none';
-    score.innerHTML = SCORE_INITIAL.VALUE;
-    scoreStartText.innerHTML = SCORE_INITIAL.VALUE;
+    score.innerHTML = ECONOMY_INITIAL.SCORE;
+    xp.innerHTML = ECONOMY_INITIAL.XP;
+    scoreStartText.innerHTML = ECONOMY_INITIAL.SCORE;
+    xpStartText.innerHTML = ECONOMY_INITIAL.XP;
 }
 
 function init() {
@@ -78,7 +85,11 @@ function init() {
 // HANDLERS
 function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) {
     let refreshIntervalId = setInterval(() => {
-        if(gameStatus === GAME_STATUS.START){
+        if(gameStatus === GAME_STATUS.START) {
+
+            const chooseRandomEnemy = createRandomIntegerBetweenTwoNumbers(0, 2);
+
+            console.log(' Random enemy choosed: ', enemyData[chooseRandomEnemy]);
             const radius = 10 + ( Math.random() * 30);
  
             const initialPosition = createInitialPosition(
@@ -103,10 +114,9 @@ function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) 
             const enemy = new Enemy(
                 contextToHandle, 
                 initialPosition.x, 
-                initialPosition.y, 
-                radius, 
+                initialPosition.y,  
                 velocity,
-                enemyData[0]
+                enemyData[chooseRandomEnemy]
             );
 
             enemiesArray.push(enemy);
@@ -165,6 +175,7 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                 //'end game - the player has hitted'
                 cancelAnimationFrame(animationId);
                 scoreStartText.innerHTML = scoreValue;
+                xpStartText.innerHTML = xpValue;
                 containerStart.style.display = 'flex';
                 gameStatus = GAME_STATUS.END;
                 
@@ -200,8 +211,7 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
 
                 if(!enemy.isDead()) {
 
-
-                    console.log(`${ enemy.name } recived damage and has ${ enemy.hp } hp`);
+                    console.log(`${ enemy.name } recived damage and has ${ enemy.currentHp } hp`);
 
                     setTimeout(() => {
                         projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
@@ -210,9 +220,11 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                     // increase our score
                     scoreValue += enemy.value;
                     score.innerHTML = scoreValue;
-                    
-                    // increase out xp
 
+                    // increase our xp
+                    xpValue += enemy.xp;
+                    xp.innerHTML = xpValue;
+                    
                     // remove from scene altogether
                     setTimeout(() => {
                         enemiesToHandle.splice(enemiesToHandle.indexOf(enemy), 1);
