@@ -1,3 +1,4 @@
+import { dataEnemy } from './data/enemy.js';
 import { CONFIG } from "./env/index.js";
 import {
     createLuckCoin,
@@ -71,11 +72,11 @@ function init() {
     resetData()
     resetHtmlElements();
     animate();
-    spawnEnemies(context, canvas, enemies);
+    spawnEnemies(context, canvas, enemies, dataEnemy);
 }
 
 // HANDLERS
-function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray) {
+function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) {
     let refreshIntervalId = setInterval(() => {
         if(gameStatus === GAME_STATUS.START){
             const radius = 10 + ( Math.random() * 30);
@@ -104,8 +105,8 @@ function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray) {
                 initialPosition.x, 
                 initialPosition.y, 
                 radius, 
-                color, 
-                velocity
+                velocity,
+                enemyData[0]
             );
 
             enemiesArray.push(enemy);
@@ -123,6 +124,12 @@ function handleParticles(particlesToHandle) {
             particle.update();
         }
     })
+}
+
+function changeEnemyRadius(enemyToHandlem, radiusToChange) {
+    gsap.to(enemyToHandle, {
+        radius: enemyToHandle.radius - radiusToChange,
+    });
 }
 
 function handleProjectiles(projectilesToHandle) {
@@ -189,22 +196,24 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                     ))
                 }
 
-                if(enemy.radius - 10 > 5) {
-                    // increase our score
-                    scoreValue += 100;
-                    score.innerHTML = scoreValue;
+                enemy.takeDamage(1);
 
-                    gsap.to(enemy, {
-                        radius: enemy.radius -10,
-                    });
+                if(!enemy.isDead()) {
+
+
+                    console.log(`${ enemy.name } recived damage and has ${ enemy.hp } hp`);
 
                     setTimeout(() => {
                         projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
                     }, 0); // use setTimeout to remove the effect of flash object after the animation
                 } else {
-                    // remove from scene altogether
-                    scoreValue += 250;
+                    // increase our score
+                    scoreValue += enemy.value;
                     score.innerHTML = scoreValue;
+                    
+                    // increase out xp
+
+                    // remove from scene altogether
                     setTimeout(() => {
                         enemiesToHandle.splice(enemiesToHandle.indexOf(enemy), 1);
                         projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
