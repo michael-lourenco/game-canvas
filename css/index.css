@@ -1,15 +1,21 @@
 body {
     margin: 0;
 }
-
-#containerScore {
-    position: fixed;
+#economy {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #800;
+    overflow: hidden;
     color: white;
-    margin-left: 20px;
-    margin-top: 20px;
+    padding: 5px;
+}
+
+#containerScore, #containerXp {
     -webkit-user-select: none; /* Safari */
     -ms-user-select: none; /* IE 10 and IE 11 */
     user-select: none; /* Standard syntax */
+    margin-left: 5px;
 }
 
 #containerStart {
@@ -25,7 +31,7 @@ body {
     padding: 3px;
 }
 
-#scoreStartText {
+#scoreStartText, #xpStartText {
     font-size: 50px;
     font-weight: bold;
     margin-left: auto;

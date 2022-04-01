@@ -23,8 +23,9 @@ const CONFIG = {
         RADIUS: 5,
         VELOCITY_FACTOR: 8,
     },
-    SCORE_INITIAL: {
-        VALUE: 0,
+    ECONOMY_INITIAL: {
+        SCORE: 0,
+        XP: 0,
     },
 }
 
