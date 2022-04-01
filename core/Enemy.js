@@ -1,6 +1,6 @@
 
 class Enemy {
-    constructor(context, x, y, radius, velocity, { color, name, hp, attack, value, xp }) {
+    constructor(context, x, y, velocity, { color, name, hp, attack, value, xp, radius }) {
         this.context = context;
         
         this.x = x;
@@ -15,7 +15,7 @@ class Enemy {
 
         this.maxHp = hp;
         this.currentHp  = hp;
-        
+
         this.attack = attack;
 
         this.value = value;
