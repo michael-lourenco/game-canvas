@@ -41,3 +41,61 @@ Change code to modules
 Sharing responsibilities
 
 Adopting git flow
+
+# Give life to Enemy
+
+On class `Enemy`:
+
+- Add attributes:
+ ```
+    - name
+    - maxHp 
+    - currentHp
+    - attack
+    - value
+    - xp
+```
+
+- Add functions:
+```
+    - isDead
+    - takeDamage
+    - doDamage
+```
+Created data with some enemies:
+
+```
+const dataEnemy =
+{
+    0:{
+        name: 'Globin',
+        hp: 1,
+        attack: 1,
+        color: 'hsla(120,100%,50%,0.3)',
+        value: 1,
+        xp: 1,
+        radius: 20,
+        velocity_factor: 3,
+    },
+    1: {
+        name: 'Soldier',
+        hp: 2,
+        attack: 1,
+        color: 'hsla(240,100%,50%,0.3)',
+        value: 2,
+        xp: 3,
+        radius: 30,
+        velocity_factor: 3,
+    },
+    2: {
+        name: 'Captain',
+        hp: 5,
+        attack: 3,
+        color: 'hsla(300,100%,50%,0.3)',
+        value: 5,
+        xp: 15,
+        radius: 40,
+        velocity_factor: 0.5,
+    }
+}
+```
