@@ -89,13 +89,13 @@ function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) 
 
             const chooseRandomEnemy = createRandomIntegerBetweenTwoNumbers(0, 2);
 
-            console.log(' Random enemy choosed: ', enemyData[chooseRandomEnemy]);
-            const radius = 10 + ( Math.random() * 30);
+            const enemyDataChoosed = enemyData[chooseRandomEnemy]
+            console.log(' Random enemy choosed: ', enemyDataChoosed);
  
             const initialPosition = createInitialPosition(
                 createLuckCoin(),
                 createLuckCoin(),
-                radius, 
+                enemyDataChoosed.radius, 
                 canvasToHandle.width, 
                 canvasToHandle.height
             );
@@ -109,14 +109,14 @@ function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) 
                 initialPosition.y, 
             ); 
 
-            const velocity = createVelocity(angleToCenter, ENEMY_INITIAL.VELOCITY_FACTOR);
+            const velocity = createVelocity(angleToCenter, enemyDataChoosed.velocity_factor);
         
             const enemy = new Enemy(
                 contextToHandle, 
                 initialPosition.x, 
                 initialPosition.y,  
                 velocity,
-                enemyData[chooseRandomEnemy]
+                enemyDataChoosed
             );
 
             enemiesArray.push(enemy);
@@ -134,12 +134,6 @@ function handleParticles(particlesToHandle) {
             particle.update();
         }
     })
-}
-
-function changeEnemyRadius(enemyToHandlem, radiusToChange) {
-    gsap.to(enemyToHandle, {
-        radius: enemyToHandle.radius - radiusToChange,
-    });
 }
 
 function handleProjectiles(projectilesToHandle) {
@@ -192,12 +186,12 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
             //objects touch (enemy and projectile)
             if(distanceBetweenProjectile < enemy.radius + projectile.radius -5) {
                 //create explosions
-                for (let i =0; i < enemy.radius * 2; i++) {
+                for (let i = 0; i < enemy.radius * PARTICLE_INITIAL.MULTIPLY_FACTOR; i++) {
                     particlesToHandle.push(new Particle(
                         contextToHandle,
                         projectile.x,
                         projectile.y,
-                        Math.random() * 2,
+                        Math.random() * PARTICLE_INITIAL.MULTIPLY_RADIUS_FACTOR,
                         enemy.color,
                         {
                             x: (Math.random() - 0.5) * (Math.random() * PARTICLE_INITIAL.VELOCITY_FACTOR),
@@ -247,6 +241,14 @@ function handlePlayer(playerToHandle) {
     playerToHandle.draw();
 }
 
+// UTILS
+function changeGameObjectRadius(gameObjectToHandle, radiusToChange) {
+    gsap.to(gameObjectToHandle, {
+        radius: gameObjectToHandle.radius - radiusToChange,
+    });
+}
+
+// CORE FUNCTION ANIMATE
 function animate() {
     animationId = requestAnimationFrame(animate);
     

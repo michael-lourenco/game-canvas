@@ -7,7 +7,8 @@ const dataEnemy =
         color: 'hsla(120,100%,50%,0.3)',
         value: 1,
         xp: 1,
-        radius: 20
+        radius: 20,
+        velocity_factor: 3,
     },
     1: {
         name: 'Soldier',
@@ -16,7 +17,8 @@ const dataEnemy =
         color: 'hsla(240,100%,50%,0.3)',
         value: 2,
         xp: 3,
-        radius: 30
+        radius: 30,
+        velocity_factor: 3,
     },
     2: {
         name: 'Captain',
@@ -25,7 +27,8 @@ const dataEnemy =
         color: 'hsla(300,100%,50%,0.3)',
         value: 5,
         xp: 15,
-        radius: 40
+        radius: 40,
+        velocity_factor: 0.5,
     }
 }
 
