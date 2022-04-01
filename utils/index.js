@@ -31,6 +31,13 @@ function createInitialPosition(luckToDirection, luckToSense,radiusToUse, widthTo
     }
 }
 
+function createRandomIntegerBetweenTwoNumbers(minRecived, maxRecived) {
+    const min = parseInt(minRecived);
+    const max = parseInt(maxRecived);
+    
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function createVelocity(angle, multiplyFactor = 1) {
     return {
         x: Math.cos(angle) * multiplyFactor,
@@ -38,10 +45,13 @@ function createVelocity(angle, multiplyFactor = 1) {
     }
 }
 
+
+
 export {
     createLuckCoin,
     createRandomColor,
     createAngleToCenter,
     createInitialPosition,
+    createRandomIntegerBetweenTwoNumbers,
     createVelocity
 }
