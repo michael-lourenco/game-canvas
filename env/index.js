@@ -12,6 +12,8 @@ const CONFIG = {
         END: 2,
     },
     PARTICLE_INITIAL: {
+        MULTIPLY_FACTOR: 2,
+        MULTIPLY_RADIUS_FACTOR: 2,
         VELOCITY_FACTOR: 3,
     },
     PLAYER_INITIAL: {
