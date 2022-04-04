@@ -40,7 +40,7 @@ const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
 const xpStartText = document.querySelector('#xpStartText');
 
-// CREATE COORDINATES X AND Y ON SCREENV/CANVAS
+// CREATE COORDINATES X AND Y ON SCREEN / CANVAS
 const MIDDLE_SCREEN_X = canvas.width / 2;
 const MIDDLE_SCREEN_Y = canvas.height / 2;
 
@@ -74,21 +74,21 @@ function resetHtmlElements() {
     xpStartText.innerHTML = ECONOMY_INITIAL.XP;
 }
 
-function init() {
-    resetData()
-    resetHtmlElements();
-    animate();
-    spawnEnemies(context, canvas, enemies, dataEnemy);
+// PLAYER
+function handlePlayer(playerToHandle) {
+    playerToHandle.draw();
 }
 
-// HANDLERS
+
+// ENEMY
 function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) {
     let refreshIntervalId = setInterval(() => {
         if(gameStatus === GAME_STATUS.START) {
 
             const chooseRandomEnemy = createRandomIntegerBetweenTwoNumbers(0, 2);
 
-            const enemyDataChoosed = enemyData[chooseRandomEnemy]
+            const enemyDataChoosed = enemyData[chooseRandomEnemy];
+
             console.log(' Random enemy choosed: ', enemyDataChoosed);
  
             const initialPosition = createInitialPosition(
@@ -123,51 +123,6 @@ function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) 
             clearInterval(refreshIntervalId);
         }
     }, 1000);
-}
-
-function handleParticles(particlesToHandle) {
-    particlesToHandle.forEach(particle => {
-        if(particle.alpha <= 0){
-            particlesToHandle.splice(particlesToHandle.indexOf(particle), 1);
-        } else{
-            particle.update();
-        }
-    })
-}
-
-function handleProjectiles(projectilesToHandle) {
-    projectilesToHandle.forEach((projectile) => {
-        projectile.update();
-
-        // remove projectile if it goes out of bounds
-        if(projectile.x + projectile.radius < 0  || 
-            projectile.x - projectile.radius > canvas.width || 
-            projectile.y + projectile.radius < 0 || 
-            projectile.y - projectile.radius > canvas.height) {
-                setTimeout(() => {
-                    // removing projectile from array
-                    projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
-                }); // use setTimeout to remove the effect of flash object after the animation
-        }
-    })
-}
-
-function haveCollision(gameObjectToHandle, gameObjectToHandle2) {
-    // hypot - distance between two points (enemy and player)
-    const distanceBetweenObjects = Math.hypot(
-        gameObjectToHandle.x - gameObjectToHandle2.x, 
-        gameObjectToHandle.y - gameObjectToHandle2.y
-    );
-
-    return distanceBetweenObjects < gameObjectToHandle2.radius + gameObjectToHandle.radius;
-}
-
-function endGame() {
-    cancelAnimationFrame(animationId);
-    scoreStartText.innerHTML = scoreValue;
-    xpStartText.innerHTML = xpValue;
-    containerStart.style.display = 'flex';
-    gameStatus = GAME_STATUS.END;
 }
 
 function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, playerToHandle, projectilesToHandle) {
@@ -219,8 +174,8 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                     
                     // remove from scene altogether
                     setTimeout(() => {
-                        enemiesToHandle.splice(enemiesToHandle.indexOf(enemy), 1);
-                        projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
+                        destroyEnemy(enemiesToHandle, enemy);
+                        destroyProjectile(projectilesToHandle, projectile);
                     }, 0); // use setTimeout to remove the effect of flash object after the animation
                 }
             }
@@ -228,6 +183,69 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
     })
 }
 
+function destroyEnemy(enemiesToHandleDestroy, enemyToDestroy) {
+    enemiesToHandleDestroy.splice(enemiesToHandleDestroy.indexOf(enemyToDestroy), 1);
+}
+
+// PROJECTILE
+function handleProjectiles(projectilesToHandle) {
+    projectilesToHandle.forEach((projectile) => {
+        projectile.update();
+
+        // remove projectile if it goes out of bounds
+        if(isOutOfBounds(projectile, canvas)) {
+                setTimeout(() => {
+                    // removing projectile from array
+                    destroyProjectile(projectilesToHandle, projectile);
+                }); // use setTimeout to remove the effect of flash object after the animation
+        }
+    })
+}
+
+function destroyProjectile(projectilesToHandleDestroy, projectileToDestroy) {
+    projectilesToHandleDestroy.splice(projectilesToHandleDestroy.indexOf(projectileToDestroy), 1);
+}
+
+// PARTICLE
+function handleParticles(particlesToHandle) {
+    particlesToHandle.forEach(particle => {
+        if(particle.alpha <= 0){
+            destroyParticle(particlesToHandle, particle);
+        } else{
+            particle.update();
+        }
+    })
+}
+
+function destroyParticle(particlesToHandleDestroy, particleToDestroy) {
+    particlesToHandleDestroy.splice(particlesToHandleDestroy.indexOf(particleToDestroy), 1);
+}
+
+// GAME OBJECTS
+function haveCollision(gameObjectToHandle, otherGameObject) {
+    // hypot - distance between two points (enemy and player)
+    const distanceBetweenObjects = Math.hypot(
+        gameObjectToHandle.x - otherGameObject.x, 
+        gameObjectToHandle.y - otherGameObject.y
+    );
+
+    return distanceBetweenObjects < otherGameObject.radius + gameObjectToHandle.radius;
+}
+
+function isOutOfBounds(gameObjectToHandle, canvasToHandle) {
+    return gameObjectToHandle.x + gameObjectToHandle.radius < 0  || 
+        gameObjectToHandle.x - gameObjectToHandle.radius > canvasToHandle.width || 
+        gameObjectToHandle.y + gameObjectToHandle.radius < 0 || 
+        gameObjectToHandle.y - gameObjectToHandle.radius > canvasToHandle.height
+}
+
+function changeGameObjectRadius(gameObjectToHandle, radiusToChange) {
+    gsap.to(gameObjectToHandle, {
+        radius: gameObjectToHandle.radius - radiusToChange,
+    });
+}
+
+// CANVAS
 function handleCanvas(canvasToHandle) {
     const { context, width, height} = canvasToHandle;
     
@@ -235,18 +253,23 @@ function handleCanvas(canvasToHandle) {
     context.fillRect(0, 0, width, height);
 }
 
-function handlePlayer(playerToHandle) {
-    playerToHandle.draw();
+
+// CORE FUNCTIONS
+function initiateGame() {
+    resetData()
+    resetHtmlElements();
+    animate();
+    spawnEnemies(context, canvas, enemies, dataEnemy);
 }
 
-// UTILS
-function changeGameObjectRadius(gameObjectToHandle, radiusToChange) {
-    gsap.to(gameObjectToHandle, {
-        radius: gameObjectToHandle.radius - radiusToChange,
-    });
+function endGame() {
+    cancelAnimationFrame(animationId);
+    scoreStartText.innerHTML = scoreValue;
+    xpStartText.innerHTML = xpValue;
+    containerStart.style.display = 'flex';
+    gameStatus = GAME_STATUS.END;
 }
 
-// CORE FUNCTION ANIMATE
 function animate() {
     animationId = requestAnimationFrame(animate);
     
@@ -287,5 +310,5 @@ window.addEventListener('click', (event) => {
 });
 
 startGameButton.addEventListener('click', () => {
-    init();
+    initiateGame();
 });
