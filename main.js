@@ -1,4 +1,5 @@
 import { dataEnemy } from './data/enemy.js';
+import { dataProjectile } from './data/projectile.js';
 import { CONFIG } from "./env/index.js";
 import {
     createLuckCoin,
@@ -18,7 +19,6 @@ import {
 
 const { 
     CANVAS, 
-    ENEMY_INITIAL,
     FRICTION, 
     GAME_STATUS, 
     PARTICLE_INITIAL,
@@ -266,18 +266,24 @@ function animate() {
 
 // INTERACTION
 window.addEventListener('click', (event) => {
-    const angle = Math.atan2(event.clientY - canvas.height / 2, event.clientX - canvas.width / 2); 
 
-    const velocity = createVelocity(angle, PROJECTILE_INITIAL.VELOCITY_FACTOR);
+    const angle = Math.atan2(event.clientY - MIDDLE_SCREEN_Y, event.clientX -MIDDLE_SCREEN_X); 
+
+    const chooseRandomProjectile = createRandomIntegerBetweenTwoNumbers(0, 1);
+
+    const projectileDataChoosed = dataProjectile[chooseRandomProjectile]
+
+    const velocity = createVelocity(angle, projectileDataChoosed.velocity_factor);
+
+    console.log(' Random projectile choosed: ', projectileDataChoosed);
 
     projectiles.push(
         new Projectile(
             context,
-            canvas.width / 2, 
-            canvas.height / 2, 
-            PROJECTILE_INITIAL.RADIUS, 
-            PROJECTILE_INITIAL.COLOR, 
-            velocity
+            MIDDLE_SCREEN_X, 
+            MIDDLE_SCREEN_Y, 
+            velocity,
+            projectileDataChoosed
         )
     );
 });
