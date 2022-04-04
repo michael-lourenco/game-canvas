@@ -153,18 +153,21 @@ function handleProjectiles(projectilesToHandle) {
     })
 }
 
+function haveCollision(gameObjectToHandle, gameObjectToHandle2) {
+    // hypot - distance between two points (enemy and player)
+    const distanceBetweenObjects = Math.hypot(
+        gameObjectToHandle.x - gameObjectToHandle2.x, 
+        gameObjectToHandle.y - gameObjectToHandle2.y
+    );
+
+    return distanceBetweenObjects < gameObjectToHandle2.radius + gameObjectToHandle.radius;
+}
+
 function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, playerToHandle, projectilesToHandle) {
     enemiesToHandle.forEach((enemy) => {
         enemy.update();
 
-        // hypot - distance between two points (enemy and player)
-        const distanceBetweenPlayer = Math.hypot(
-            playerToHandle.x - enemy.x, 
-            playerToHandle.y - enemy.y
-        );
-
-        //objects touch (enemy and player)
-        if(distanceBetweenPlayer < enemy.radius + playerToHandle.radius -5) {
+        if(haveCollision(playerToHandle, enemy)) {
             setTimeout(() => {
                 //'end game - the player has hitted'
                 cancelAnimationFrame(animationId);
@@ -177,14 +180,8 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
         }  
 
         projectilesToHandle.forEach((projectile) => {
-            // hypot - distance between two points (enemy and projectile)
-            const distanceBetweenProjectile = Math.hypot(
-                projectile.x - enemy.x, 
-                projectile.y - enemy.y
-            );
-                
-            //objects touch (enemy and projectile)
-            if(distanceBetweenProjectile < enemy.radius + projectile.radius -5) {
+
+            if(haveCollision(projectile, enemy)) {
                 //create explosions
                 for (let i = 0; i < enemy.radius * PARTICLE_INITIAL.MULTIPLY_FACTOR; i++) {
                     particlesToHandle.push(new Particle(
