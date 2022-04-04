@@ -161,7 +161,7 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                     console.log(`${ enemy.name } recived damage and has ${ enemy.currentHp } hp`);
 
                     setTimeout(() => {
-                        projectilesToHandle.splice(projectilesToHandle.indexOf(projectile), 1);
+                        destroyProjectile(projectilesToHandle, projectile);
                     }, 0); // use setTimeout to remove the effect of flash object after the animation
                 } else {
                     // increase our score
