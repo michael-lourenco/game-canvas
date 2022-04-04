@@ -2,9 +2,6 @@ const CONFIG = {
     CANVAS: {
         RGB: 'rgb(0,0,0,0.3)',
     },
-    ENEMY_INITIAL: {
-        VELOCITY_FACTOR: 3,
-    },
     FRICTION: 0.99,
     GAME_STATUS :{
         START: 0,
