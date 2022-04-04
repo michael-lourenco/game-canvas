@@ -23,7 +23,6 @@ const {
     GAME_STATUS, 
     PARTICLE_INITIAL,
     PLAYER_INITIAL, 
-    PROJECTILE_INITIAL,
     ECONOMY_INITIAL, 
 } = CONFIG;
 
@@ -163,19 +162,21 @@ function haveCollision(gameObjectToHandle, gameObjectToHandle2) {
     return distanceBetweenObjects < gameObjectToHandle2.radius + gameObjectToHandle.radius;
 }
 
+function endGame() {
+    cancelAnimationFrame(animationId);
+    scoreStartText.innerHTML = scoreValue;
+    xpStartText.innerHTML = xpValue;
+    containerStart.style.display = 'flex';
+    gameStatus = GAME_STATUS.END;
+}
+
 function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, playerToHandle, projectilesToHandle) {
     enemiesToHandle.forEach((enemy) => {
         enemy.update();
 
         if(haveCollision(playerToHandle, enemy)) {
             setTimeout(() => {
-                //'end game - the player has hitted'
-                cancelAnimationFrame(animationId);
-                scoreStartText.innerHTML = scoreValue;
-                xpStartText.innerHTML = xpValue;
-                containerStart.style.display = 'flex';
-                gameStatus = GAME_STATUS.END;
-                
+                endGame();                
             }, 0); // use setTimeout to remove the effect of flash object after the animation
         }  
 

@@ -17,11 +17,6 @@ const CONFIG = {
         COLOR: 'white',
         RADIUS: 10,
     },
-    PROJECTILE_INITIAL: {
-        COLOR: 'white',
-        RADIUS: 5,
-        VELOCITY_FACTOR: 8,
-    },
     ECONOMY_INITIAL: {
         SCORE: 0,
         XP: 0,
