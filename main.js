@@ -201,7 +201,7 @@ function handleEnemies(contextToHandle, enemiesToHandle, particlesToHandle, play
                     ))
                 }
 
-                enemy.takeDamage(1);
+                enemy.takeDamage(projectile.doDamage());
 
                 if(!enemy.isDead()) {
 
