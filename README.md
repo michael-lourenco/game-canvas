@@ -119,7 +119,7 @@ On class `Projectile`:
 ```
     - doDamage
 ```
-Created data with some enemies:
+Created data with some projectiles:
 
 ```
 const dataProjectile =
