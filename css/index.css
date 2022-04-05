@@ -1,14 +1,14 @@
 body {
     margin: 0;
 }
+
 #economy {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #800;
-    overflow: hidden;
-    color: white;
-    padding: 5px;
+    position: fixed;
+    left: 50%;
+    top: 20px;
+    background-color: #fff;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
 }
 
 #containerScore, #containerXp {
@@ -20,15 +20,11 @@ body {
 
 #containerStart {
     position: fixed;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 500px;
-    height: 250px;
-    background-color: white;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 3px;
+    left: 50%;
+    bottom: 30%;
+    background-color: #fff;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
 }
 
 #scoreStartText, #xpStartText {
@@ -51,4 +47,25 @@ body {
     width: 300px;
     height: 50px;
     border-radius: 25px;
+}
+
+#containerProjectiles {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
+}
+
+.buttonProjectile {
+    background-color: #6677FF;
+    color: white;
+    width: 100px;
+    height: 50px;
+    border-radius: 25px;
+}
+
+.slotKey {
+    color: #fff;
 }
