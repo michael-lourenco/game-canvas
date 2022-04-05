@@ -144,3 +144,7 @@ const dataProjectile =
     }
 }
 ```
+# Choose Projectile to fire
+
+ - Now we can use the keyboards buttons 'Q' and 'W' to switch the projectile used.
+ - We either can do same thing clicking in respectives buttons on screen. 

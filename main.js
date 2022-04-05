@@ -36,6 +36,8 @@ const { context } = canvas;
 const score = document.querySelector('#score');
 const xp = document.querySelector('#xp');
 const startGameButton = document.querySelector('#startGameButton');
+const qGameButton = document.querySelector('#qGameButton');
+const wGameButton = document.querySelector('#wGameButton');
 const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
 const xpStartText = document.querySelector('#xpStartText');
@@ -49,6 +51,7 @@ let player = new Player(context, MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y, PLAYER_INITIA
 let projectiles = [];
 let particles = [];
 let enemies = [];
+let projectileToFire = dataProjectile[0];
 let animationId;
 let scoreValue = ECONOMY_INITIAL.SCORE;
 let xpValue = ECONOMY_INITIAL.XP;
@@ -78,7 +81,6 @@ function resetHtmlElements() {
 function handlePlayer(playerToHandle) {
     playerToHandle.draw();
 }
-
 
 // ENEMY
 function spawnEnemies(contextToHandle, canvasToHandle, enemiesArray, enemyData) {
@@ -206,6 +208,10 @@ function destroyProjectile(projectilesToHandleDestroy, projectileToDestroy) {
     projectilesToHandleDestroy.splice(projectilesToHandleDestroy.indexOf(projectileToDestroy), 1);
 }
 
+function chooseProjectile (idProjectile, dataProjectileToChoose) {
+    projectileToFire = dataProjectileToChoose[idProjectile];
+}
+
 // PARTICLE
 function handleParticles(particlesToHandle) {
     particlesToHandle.forEach(particle => {
@@ -253,7 +259,6 @@ function handleCanvas(canvasToHandle) {
     context.fillRect(0, 0, width, height);
 }
 
-
 // CORE FUNCTIONS
 function initiateGame() {
     resetData()
@@ -290,13 +295,9 @@ window.addEventListener('click', (event) => {
 
     const angle = Math.atan2(event.clientY - MIDDLE_SCREEN_Y, event.clientX -MIDDLE_SCREEN_X); 
 
-    const chooseRandomProjectile = createRandomIntegerBetweenTwoNumbers(0, 1);
+    const velocity = createVelocity(angle, projectileToFire.velocity_factor);
 
-    const projectileDataChoosed = dataProjectile[chooseRandomProjectile]
-
-    const velocity = createVelocity(angle, projectileDataChoosed.velocity_factor);
-
-    console.log(' Random projectile choosed: ', projectileDataChoosed);
+    console.log(' Projectile choosed: ', projectileToFire);
 
     projectiles.push(
         new Projectile(
@@ -304,11 +305,32 @@ window.addEventListener('click', (event) => {
             MIDDLE_SCREEN_X, 
             MIDDLE_SCREEN_Y, 
             velocity,
-            projectileDataChoosed
+            projectileToFire
         )
     );
 });
 
 startGameButton.addEventListener('click', () => {
     initiateGame();
+});
+
+qGameButton.addEventListener('click', () => {
+    chooseProjectile(0, dataProjectile);
+});
+
+wGameButton.addEventListener('click', () => {
+    chooseProjectile(1, dataProjectile);
+});
+
+window.addEventListener('keyup', (event) => {
+    // q = 81
+    if (event.key === 'q' || event.keyCode === 81) {
+        // gun
+        chooseProjectile(0, dataProjectile);
+    }
+    // w = 87
+    if (event.key === 'w' || event.keyCode === 87) {
+        // riffle
+        chooseProjectile(1, dataProjectile);
+    }
 });
