@@ -308,10 +308,10 @@ function watchCooldowns() {
     let refreshCooldownsIntervalId = setInterval(() => {
         if(gameStatus === GAME_STATUS.START) {
             // qCooldown
-            if(qCooldown < dataProjectile[0].cooldown) {
-                qCooldown++;
-                qGameButton.innerHTML = qCooldown;
-            } else if(projectileToFire === dataProjectile[0]) {
+            if(dataProjectile[0].currentCoolDown < dataProjectile[0].cooldown) {
+                dataProjectile[0].currentCoolDown++;
+                qGameButton.innerHTML = dataProjectile[0].currentCoolDown;
+            } else if(projectileToFire === dataProjectile[0] && dataProjectile[0].currentCoolDown >= dataProjectile[0].cooldown) {
                 canFire = true;
                 qGameButton.innerHTML = dataProjectile[0].name;
             } else {
@@ -319,25 +319,35 @@ function watchCooldowns() {
             }
 
             // wCooldown
-            if(wCooldown < dataProjectile[1].cooldown) {
-                wCooldown++;
-                wGameButton.innerHTML = wCooldown;
-            } else {
+            if(dataProjectile[1].currentCoolDown < dataProjectile[1].cooldown) {
+                dataProjectile[1].currentCoolDown++;
+                wGameButton.innerHTML = dataProjectile[1].currentCoolDown;
+            }  else if(projectileToFire === dataProjectile[1] && dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown) {
+                canFire = true;
+                wGameButton.innerHTML = dataProjectile[1].name;
+            }  
+            else {
                 wGameButton.innerHTML = dataProjectile[1].name;
             }
 
             // eCooldown
-            if(eCooldown < dataProjectile[2].cooldown) {
-                eCooldown++;
-                eGameButton.innerHTML = eCooldown;
+            if(dataProjectile[2].currentCoolDown < dataProjectile[2].cooldown) {
+                dataProjectile[2].currentCoolDown++;
+                eGameButton.innerHTML = dataProjectile[2].currentCoolDown;
+            } else if(projectileToFire === dataProjectile[2] && dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown) {
+                canFire = true;
+                eGameButton.innerHTML = dataProjectile[2].name;
             } else {
                 eGameButton.innerHTML = dataProjectile[2].name;
             }
 
             // rCooldown
-            if(rCooldown < dataProjectile[3].cooldown) {
-                rCooldown++;
-                rGameButton.innerHTML = rCooldown;
+            if(dataProjectile[3].currentCoolDown < dataProjectile[3].cooldown) {
+                dataProjectile[3].currentCoolDown++;
+                rGameButton.innerHTML = dataProjectile[3].currentCoolDown;
+            } else if(projectileToFire === dataProjectile[3] && dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown) {
+                canFire = true;
+                rGameButton.innerHTML = dataProjectile[3].name;
             } else {
                 rGameButton.innerHTML = dataProjectile[3].name;
             } 
@@ -349,11 +359,10 @@ function watchCooldowns() {
 
 // handleButtons
 function qHandle(){
-    if(qCooldown >= dataProjectile[0].cooldown)
-    {
-        chooseProjectile(0, dataProjectile);
+    chooseProjectile(0, dataProjectile);
+    if(dataProjectile[0].currentCoolDown >= dataProjectile[0].cooldown)
+    {  
         canFire = true;
-        qCooldown = 0;
 
     } else {
         canFire = false;
@@ -361,11 +370,10 @@ function qHandle(){
 }
 
 function wHandle(){
-    if(wCooldown >= dataProjectile[1].cooldown)
+    chooseProjectile(1, dataProjectile);
+    if(dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown)
     {
-        chooseProjectile(1, dataProjectile);
         canFire = true;
-        wCooldown = 0;
 
     } else {
         canFire = false;
@@ -373,11 +381,10 @@ function wHandle(){
 }
 
 function eHandle(){
-    if(eCooldown >= dataProjectile[2].cooldown)
+    chooseProjectile(2, dataProjectile);
+    if(dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown)
     {
-        chooseProjectile(2, dataProjectile);
         canFire = true;
-        eCooldown = 0;
 
     } else {
         canFire = false;
@@ -385,11 +392,10 @@ function eHandle(){
 }
 
 function rHandle(){
-    if(rCooldown >= dataProjectile[3].cooldown)
-    {
-        chooseProjectile(3, dataProjectile);
+    chooseProjectile(3, dataProjectile);
+    if(dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown)
+    {     
         canFire = true;
-        rCooldown = 0;
 
     } else {
         canFire = false;
@@ -415,7 +421,7 @@ window.addEventListener('click', (event) => {
                 projectileToFire
             )
         );
-
+        projectileToFire.currentCoolDown = 0;
         canFire = false;
     }
 });
