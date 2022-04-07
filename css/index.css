@@ -28,6 +28,9 @@ body {
 }
 
 #scoreStartText, #xpStartText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 50px;
     font-weight: bold;
     margin-left: auto;
@@ -35,6 +38,9 @@ body {
 }
 
 .pointsStartText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     font-size: 20px;
     font-weight: bold;
     margin-left: auto;
@@ -42,9 +48,12 @@ body {
 }
 
 .buttonStart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-color: #6677FF;
     color: white;
-    width: 300px;
+    width: 250px;
     height: 50px;
     border-radius: 25px;
 }

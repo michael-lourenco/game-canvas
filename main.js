@@ -38,6 +38,8 @@ const xp = document.querySelector('#xp');
 const startGameButton = document.querySelector('#startGameButton');
 const qGameButton = document.querySelector('#qGameButton');
 const wGameButton = document.querySelector('#wGameButton');
+const eGameButton = document.querySelector('#eGameButton');
+const rGameButton = document.querySelector('#rGameButton');
 const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
 const xpStartText = document.querySelector('#xpStartText');
@@ -56,6 +58,12 @@ let animationId;
 let scoreValue = ECONOMY_INITIAL.SCORE;
 let xpValue = ECONOMY_INITIAL.XP;
 let gameStatus = GAME_STATUS.START;
+let canFire = false;
+
+let qCooldown = 0;
+let wCooldown = 0;
+let eCooldown = 0;
+let rCooldown = 0;
 
 // DATA
 function resetData() {
@@ -66,6 +74,11 @@ function resetData() {
     scoreValue = ECONOMY_INITIAL.SCORE;
     xpValue = ECONOMY_INITIAL.XP;
     gameStatus = GAME_STATUS.START;
+    canFire = false;
+    qCooldown = 0;
+    wCooldown = 0;
+    eCooldown = 0;
+    rCooldown = 0;
 }
 
 // ELEMENTS HTML
@@ -261,9 +274,10 @@ function handleCanvas(canvasToHandle) {
 
 // CORE FUNCTIONS
 function initiateGame() {
-    resetData()
+    resetData();
     resetHtmlElements();
     animate();
+    watchCooldowns();
     spawnEnemies(context, canvas, enemies, dataEnemy);
 }
 
@@ -287,50 +301,157 @@ function animate() {
     handleProjectiles(projectiles);
 
     handleEnemies(context, enemies, particles, player, projectiles)
+}
 
+// COOLDOWNS
+function watchCooldowns() {
+    let refreshCooldownsIntervalId = setInterval(() => {
+        if(gameStatus === GAME_STATUS.START) {
+            // qCooldown
+            if(qCooldown < dataProjectile[0].cooldown) {
+                qCooldown++;
+                qGameButton.innerHTML = qCooldown;
+            } else if(projectileToFire === dataProjectile[0]) {
+                canFire = true;
+                qGameButton.innerHTML = dataProjectile[0].name;
+            } else {
+                qGameButton.innerHTML = dataProjectile[0].name;
+            }
+
+            // wCooldown
+            if(wCooldown < dataProjectile[1].cooldown) {
+                wCooldown++;
+                wGameButton.innerHTML = wCooldown;
+            } else {
+                wGameButton.innerHTML = dataProjectile[1].name;
+            }
+
+            // eCooldown
+            if(eCooldown < dataProjectile[2].cooldown) {
+                eCooldown++;
+                eGameButton.innerHTML = eCooldown;
+            } else {
+                eGameButton.innerHTML = dataProjectile[2].name;
+            }
+
+            // rCooldown
+            if(rCooldown < dataProjectile[3].cooldown) {
+                rCooldown++;
+                rGameButton.innerHTML = rCooldown;
+            } else {
+                rGameButton.innerHTML = dataProjectile[3].name;
+            } 
+        } else {
+            clearInterval(refreshCooldownsIntervalId);
+        }
+    }, 1000);
+}
+
+// handleButtons
+function qHandle(){
+    if(qCooldown >= dataProjectile[0].cooldown)
+    {
+        chooseProjectile(0, dataProjectile);
+        canFire = true;
+        qCooldown = 0;
+
+    } else {
+        canFire = false;
+    }
+}
+
+function wHandle(){
+    if(wCooldown >= dataProjectile[1].cooldown)
+    {
+        chooseProjectile(1, dataProjectile);
+        canFire = true;
+        wCooldown = 0;
+
+    } else {
+        canFire = false;
+    }
+}
+
+function eHandle(){
+    if(eCooldown >= dataProjectile[2].cooldown)
+    {
+        chooseProjectile(2, dataProjectile);
+        canFire = true;
+        eCooldown = 0;
+
+    } else {
+        canFire = false;
+    }
+}
+
+function rHandle(){
+    if(rCooldown >= dataProjectile[3].cooldown)
+    {
+        chooseProjectile(3, dataProjectile);
+        canFire = true;
+        rCooldown = 0;
+
+    } else {
+        canFire = false;
+    }
 }
 
 // INTERACTION
 window.addEventListener('click', (event) => {
+    if(gameStatus === GAME_STATUS.START && canFire) {
+    
+        const angle = Math.atan2(event.clientY - MIDDLE_SCREEN_Y, event.clientX -MIDDLE_SCREEN_X); 
 
-    const angle = Math.atan2(event.clientY - MIDDLE_SCREEN_Y, event.clientX -MIDDLE_SCREEN_X); 
+        const velocity = createVelocity(angle, projectileToFire.velocity_factor);
 
-    const velocity = createVelocity(angle, projectileToFire.velocity_factor);
+        console.log(' Projectile choosed: ', projectileToFire);
 
-    console.log(' Projectile choosed: ', projectileToFire);
+        projectiles.push(
+            new Projectile(
+                context,
+                MIDDLE_SCREEN_X, 
+                MIDDLE_SCREEN_Y, 
+                velocity,
+                projectileToFire
+            )
+        );
 
-    projectiles.push(
-        new Projectile(
-            context,
-            MIDDLE_SCREEN_X, 
-            MIDDLE_SCREEN_Y, 
-            velocity,
-            projectileToFire
-        )
-    );
+        canFire = false;
+    }
 });
 
-startGameButton.addEventListener('click', () => {
-    initiateGame();
-});
+startGameButton.addEventListener('click', () => initiateGame());
 
-qGameButton.addEventListener('click', () => {
-    chooseProjectile(0, dataProjectile);
-});
+qGameButton.addEventListener('click', () => qHandle());
 
-wGameButton.addEventListener('click', () => {
-    chooseProjectile(1, dataProjectile);
-});
+wGameButton.addEventListener('click', () => wHandle());
+
+eGameButton.addEventListener('click', () => eHandle());
+
+rGameButton.addEventListener('click', () => rHandle());
 
 window.addEventListener('keyup', (event) => {
     // q = 81
     if (event.key === 'q' || event.keyCode === 81) {
         // gun
-        chooseProjectile(0, dataProjectile);
+        qHandle();
     }
+
     // w = 87
     if (event.key === 'w' || event.keyCode === 87) {
         // riffle
-        chooseProjectile(1, dataProjectile);
+        wHandle();
+    }
+
+    // e = 101
+    if (event.key === 'e' || event.keyCode === 101) {
+        // shotgun
+        eHandle();
+    }
+
+    // r = 114
+    if (event.key === 'r' || event.keyCode === 114) {
+        // bomb
+        rHandle();
     }
 });

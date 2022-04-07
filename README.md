@@ -148,3 +148,8 @@ const dataProjectile =
 
  - Now we can use the keyboards buttons 'Q' and 'W' to switch the projectile used.
  - We either can do same thing clicking in respectives buttons on screen. 
+ 
+ # Add cooldown to projectiles
+  - Now we need have cooldown to can use a projectile.
+  - When use a projectile this enter in cooldown
+  - Exception the gun, if can be shooted ever have cooldown

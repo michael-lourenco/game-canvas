@@ -8,7 +8,7 @@ const dataEnemy =
         value: 1,
         xp: 1,
         radius: 20,
-        velocity_factor: 3,
+        velocity_factor: 0.5,
     },
     1: {
         name: 'Soldier',
@@ -18,7 +18,7 @@ const dataEnemy =
         value: 2,
         xp: 3,
         radius: 30,
-        velocity_factor: 3,
+        velocity_factor: 0.5,
     },
     2: {
         name: 'Captain',
