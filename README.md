@@ -153,3 +153,18 @@ const dataProjectile =
   - Now we need have cooldown to can use a projectile.
   - When use a projectile this enter in cooldown
   - Exception the gun, if can be shooted ever have cooldown
+
+
+# Logic to improve selection and cooldowns
+    - You select slot of projectile
+        - if it can be fired
+            - if you click
+                - this fire
+                - this cooldown is restarted
+            - if you don't click
+                - if you change the selection of projectile
+                - this don't fire
+                - this cooldown don't be affected
+        - if it can't be fired
+            - this projectile is selected
+            - you can't fire
