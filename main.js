@@ -40,6 +40,11 @@ const qGameButton = document.querySelector('#qGameButton');
 const wGameButton = document.querySelector('#wGameButton');
 const eGameButton = document.querySelector('#eGameButton');
 const rGameButton = document.querySelector('#rGameButton');
+const qGameTimer = document.querySelector('#qGameTimer');
+const wGameTimer = document.querySelector('#wGameTimer');
+const eGameTimer = document.querySelector('#eGameTimer');
+const rGameTimer = document.querySelector('#rGameTimer');
+
 const containerStart = document.querySelector('#containerStart');
 const scoreStartText = document.querySelector('#scoreStartText');
 const xpStartText = document.querySelector('#xpStartText');
@@ -88,6 +93,10 @@ function resetHtmlElements() {
     xp.innerHTML = ECONOMY_INITIAL.XP;
     scoreStartText.innerHTML = ECONOMY_INITIAL.SCORE;
     xpStartText.innerHTML = ECONOMY_INITIAL.XP;
+    qGameButton.innerHTML = dataProjectile[0].name;
+    wGameButton.innerHTML = dataProjectile[1].name;
+    eGameButton.innerHTML = dataProjectile[2].name;
+    rGameButton.innerHTML = dataProjectile[3].name;
 }
 
 // PLAYER
@@ -307,49 +316,90 @@ function animate() {
 function watchCooldowns() {
     let refreshCooldownsIntervalId = setInterval(() => {
         if(gameStatus === GAME_STATUS.START) {
+
             // qCooldown
+            //change button background color
+            if(projectileToFire === dataProjectile[0]){
+                qGameButton.style.backgroundColor = "#F31730";
+            } else {
+                qGameButton.style.backgroundColor = "#203060";
+            }
+
             if(dataProjectile[0].currentCoolDown < dataProjectile[0].cooldown) {
+                qGameTimer.innerHTML = dataProjectile[0].cooldown - dataProjectile[0].currentCoolDown;
                 dataProjectile[0].currentCoolDown++;
-                qGameButton.innerHTML = dataProjectile[0].currentCoolDown;
+                qGameTimer.style.backgroundColor = "#203060";
             } else if(projectileToFire === dataProjectile[0] && dataProjectile[0].currentCoolDown >= dataProjectile[0].cooldown) {
                 canFire = true;
-                qGameButton.innerHTML = dataProjectile[0].name;
+                qGameTimer.innerHTML = "";
+                qGameTimer.style.backgroundColor = "#00ff00";
             } else {
-                qGameButton.innerHTML = dataProjectile[0].name;
+                qGameTimer.innerHTML = "";
+                qGameTimer.style.backgroundColor = "#00ff00";
             }
 
             // wCooldown
+            //change button background color
+            if(projectileToFire === dataProjectile[1]){
+                wGameButton.style.backgroundColor = "#F31730";
+            } else {
+                wGameButton.style.backgroundColor = "#203060";
+            }
+
             if(dataProjectile[1].currentCoolDown < dataProjectile[1].cooldown) {
+                wGameTimer.innerHTML = dataProjectile[1].cooldown - dataProjectile[1].currentCoolDown;
                 dataProjectile[1].currentCoolDown++;
-                wGameButton.innerHTML = dataProjectile[1].currentCoolDown;
+                wGameTimer.style.backgroundColor = "#203060";
             }  else if(projectileToFire === dataProjectile[1] && dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown) {
                 canFire = true;
-                wGameButton.innerHTML = dataProjectile[1].name;
+                wGameTimer.innerHTML = "";
+                wGameTimer.style.backgroundColor = "#00ff00";
             }  
             else {
-                wGameButton.innerHTML = dataProjectile[1].name;
+                wGameTimer.innerHTML = "";
+                wGameTimer.style.backgroundColor = "#00ff00";
             }
 
             // eCooldown
+            //change button background color
+            if(projectileToFire === dataProjectile[2]){
+                eGameButton.style.backgroundColor = "#F31730";
+            } else {
+                eGameButton.style.backgroundColor = "#203060";
+            }
+
             if(dataProjectile[2].currentCoolDown < dataProjectile[2].cooldown) {
+                eGameTimer.innerHTML = dataProjectile[2].cooldown - dataProjectile[2].currentCoolDown;
                 dataProjectile[2].currentCoolDown++;
-                eGameButton.innerHTML = dataProjectile[2].currentCoolDown;
+                eGameTimer.style.backgroundColor = "#203060";
             } else if(projectileToFire === dataProjectile[2] && dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown) {
                 canFire = true;
-                eGameButton.innerHTML = dataProjectile[2].name;
+                eGameTimer.innerHTML = "";
+                eGameTimer.style.backgroundColor = "#00ff00";
             } else {
-                eGameButton.innerHTML = dataProjectile[2].name;
+                eGameTimer.innerHTML = "";
+                eGameTimer.style.backgroundColor = "#00ff00";
             }
 
             // rCooldown
+            //change button background color
+            if(projectileToFire === dataProjectile[3]){
+                rGameButton.style.backgroundColor = "#F31730";
+            } else {
+                rGameButton.style.backgroundColor = "#203060";
+            }
+
             if(dataProjectile[3].currentCoolDown < dataProjectile[3].cooldown) {
+                rGameTimer.innerHTML = dataProjectile[3].cooldown - dataProjectile[3].currentCoolDown;
                 dataProjectile[3].currentCoolDown++;
-                rGameButton.innerHTML = dataProjectile[3].currentCoolDown;
+                rGameTimer.style.backgroundColor = "#203060";
             } else if(projectileToFire === dataProjectile[3] && dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown) {
                 canFire = true;
-                rGameButton.innerHTML = dataProjectile[3].name;
+                rGameTimer.innerHTML = "";
+                rGameTimer.style.backgroundColor = "#00ff00";
             } else {
-                rGameButton.innerHTML = dataProjectile[3].name;
+                rGameTimer.innerHTML = "";
+                rGameTimer.style.backgroundColor = "#00ff00";
             } 
         } else {
             clearInterval(refreshCooldownsIntervalId);
@@ -371,6 +421,7 @@ function qHandle(){
 
 function wHandle(){
     chooseProjectile(1, dataProjectile);
+    wGameButton.style.backgroundColor = "#F31730";
     if(dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown)
     {
         canFire = true;
@@ -382,6 +433,7 @@ function wHandle(){
 
 function eHandle(){
     chooseProjectile(2, dataProjectile);
+    eGameButton.style.backgroundColor = "#F31730";
     if(dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown)
     {
         canFire = true;
@@ -393,6 +445,7 @@ function eHandle(){
 
 function rHandle(){
     chooseProjectile(3, dataProjectile);
+    rGameButton.style.backgroundColor = "#F31730";
     if(dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown)
     {     
         canFire = true;
@@ -421,6 +474,7 @@ window.addEventListener('click', (event) => {
                 projectileToFire
             )
         );
+
         projectileToFire.currentCoolDown = 0;
         canFire = false;
     }

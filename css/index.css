@@ -1,5 +1,6 @@
 body {
     margin: 0;
+    background-color: #101010;
 }
 
 #economy {
@@ -55,7 +56,7 @@ body {
     color: white;
     width: 250px;
     height: 50px;
-    border-radius: 25px;
+    border-radius: 15px;
 }
 
 #containerProjectiles {
@@ -67,14 +68,49 @@ body {
     margin: 0 auto;
 }
 
+.slot {
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    flex-direction: column;
+    width: 125px;
+    height: 125px;
+    margin:5px;
+}
+
 .buttonProjectile {
-    background-color: #6677FF;
+    display: block;
+    justify-content: center;
+    align-items: center;
+    background-color: #203060;
     color: white;
     width: 100px;
     height: 50px;
-    border-radius: 25px;
+    border-radius: 10px;
+    font-weight: bold;
+    border: none;
 }
 
 .slotKey {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
+    background-color: #203060;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+.slotTimer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background-color: #203060;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    font-weight: bold;
 }
