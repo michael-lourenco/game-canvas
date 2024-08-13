@@ -7,7 +7,7 @@
     <body>
         <div id = "economy">
             <div id = "containerScore">
-                <span>Score:</span> <span id = "score"> 0 </span>
+                <span>Points:</span> <span id = "score"> 0 </span>
             </div>
             <div id = "containerXp">
                 <span>XP:</span> <span id = "xp"> 0 </span>
@@ -21,27 +21,31 @@
                 <h1 id = "xpStartText"> 0 </h1>
                 <p class = "pointsStartText"> XP </p>
                 <div>
-                    <button class = "buttonStart" id="startGameButton"> Start Game </button>
+                    <button class = "buttonStart" id = "startGameButton"> Start Game </button>
                 </div>
             </div>
         </div>
 
         <div id = "containerProjectiles">
-            <div class="slot">
-                <div class="slotKey">Q</div>
-                <button class = "buttonProjectile" id="qGameButton"> gun </button>
+            <div class = "slot">
+                <div class = "slotKey">Q</div>
+                <button class = "buttonProjectile" id = "qGameButton"> gun </button>
+                <div class = "slotTimer" id = "qGameTimer">0</div>
             </div>
             <div class="slot">
-                <div class="slotKey">W</div>
-                <button class = "buttonProjectile" id="wGameButton"> riffle </button>
+                <div class = "slotKey">W</div>
+                <button class = "buttonProjectile" id = "wGameButton"> riffle </button>
+                <div class = "slotTimer" id = "wGameTimer">0</div>
             </div>
-            <div class="slot">
-                <div class="slotKey">E</div>
-                <button class = "buttonProjectile" id="eGameButton"> ?? </button>
+            <div class = "slot">
+                <div class = "slotKey">E</div>
+                <button class = "buttonProjectile" id = "eGameButton"> shotgun </button>
+                <div class = "slotTimer" id = "eGameTimer">0</div>
             </div>
-            <div class="slot">
-                <div class="slotKey">R</div>
-                <button class = "buttonProjectile" id="rGameButton"> ?? </button>
+            <div class = "slot">
+                <div class = "slotKey">R</div>
+                <button class = "buttonProjectile" id = "rGameButton"> bomb </button>
+                <div class = "slotTimer" id = "rGameTimer">0</div>
             </div>
         </div>
 
