@@ -1,0 +1,116 @@
+body {
+    margin: 0;
+    background-color: #101010;
+}
+
+#economy {
+    overflow: hidden;
+}
+
+#containerScore, #containerXp {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+#containerStart {
+    position: fixed;
+    left: 50%;
+    bottom: 30%;
+    background-color: #f02020;
+    color: #f2f2f2;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
+    padding: 10px;
+}
+
+#scoreStartText, #xpStartText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    font-weight: bold;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.pointsStartText {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.buttonStart {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #203060;
+    color: white;
+    width: 250px;
+    height: 50px;
+    border-radius: 15px;
+    border: none;
+}
+
+#containerProjectiles {
+    display: flex;
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translate(-50%, -50%);
+    margin: 0 auto;
+}
+
+.slot {
+    display: flex;
+    align-items:center;
+    justify-content: center;
+    flex-direction: column;
+    width: 125px;
+    height: 125px;
+    margin:5px;
+}
+
+.buttonProjectile {
+    display: block;
+    justify-content: center;
+    align-items: center;
+    background-color: #203060;
+    color: white;
+    width: 100px;
+    height: 50px;
+    border-radius: 10px;
+    font-weight: bold;
+    border: none;
+}
+
+.slotKey {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f2f2f2;
+    background-color: #203060;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+.slotTimer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f2f2f2;
+    background-color: #203060;
+    width: 30px;
+    height: 30px;
+    border-radius: 15px;
+    font-weight: bold;
+}

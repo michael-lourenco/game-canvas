@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="./css/index.css">
+    </head>    
+    <body>
+        <div id = "economy">
+            <div id = "containerScore">
+                <span>Points:</span> <span id = "score"> 0 </span>
+            </div>
+            <div id = "containerXp">
+                <span>XP:</span> <span id = "xp"> 0 </span>
+            </div>
+        </div>
+
+        <div id = "containerStart">
+            <div>
+                <h1 id = "scoreStartText"> 0 </h1>
+                <p class = "pointsStartText"> Points </p>
+                <h1 id = "xpStartText"> 0 </h1>
+                <p class = "pointsStartText"> XP </p>
+                <div>
+                    <button class = "buttonStart" id = "startGameButton"> Start Game </button>
+                </div>
+            </div>
+        </div>
+
+        <div id = "containerProjectiles">
+            <div class = "slot">
+                <div class = "slotKey">Q</div>
+                <button class = "buttonProjectile" id = "qGameButton"> gun </button>
+                <div class = "slotTimer" id = "qGameTimer">0</div>
+            </div>
+            <div class="slot">
+                <div class = "slotKey">W</div>
+                <button class = "buttonProjectile" id = "wGameButton"> riffle </button>
+                <div class = "slotTimer" id = "wGameTimer">0</div>
+            </div>
+            <div class = "slot">
+                <div class = "slotKey">E</div>
+                <button class = "buttonProjectile" id = "eGameButton"> shotgun </button>
+                <div class = "slotTimer" id = "eGameTimer">0</div>
+            </div>
+            <div class = "slot">
+                <div class = "slotKey">R</div>
+                <button class = "buttonProjectile" id = "rGameButton"> bomb </button>
+                <div class = "slotTimer" id = "rGameTimer">0</div>
+            </div>
+        </div>
+
+        <script src = "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script type = "module" src = '/src/main.ts'></script> 
+    </body>
+</html>
