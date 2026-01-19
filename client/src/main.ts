@@ -18,6 +18,16 @@ import {
 } from './entities';
 import { SaveManager } from './managers/SaveManager';
 import { AutoSkillSystem } from './systems/AutoSkillSystem';
+import { DiamondManager } from './managers/DiamondManager';
+import { UnlockManager } from './managers/UnlockManager';
+import { SkillShopManager } from './managers/SkillShopManager';
+import { ItemManager } from './managers/ItemManager';
+import { LevelUpSystem } from './systems/LevelUpSystem';
+import { UpgradeCardSystem } from './systems/UpgradeCardSystem';
+import { achievements } from './data/achievements';
+import { UpgradeSelection } from './ui/UpgradeSelection';
+import { Hub } from './ui/Hub';
+import type { UpgradeCard } from './data/upgradeCards';
 
 const {
     CANVAS,
@@ -82,10 +92,33 @@ const saveManager = new SaveManager();
 // AUTO SKILL SYSTEM
 const autoSkillSystem = new AutoSkillSystem(MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y);
 
+// 🆕 META PROGRESSÃO
+const diamondManager = new DiamondManager();
+const unlockManager = new UnlockManager(diamondManager);
+
+// 🆕 SISTEMAS DE PARTIDA
+const levelUpSystem = new LevelUpSystem();
+const upgradeCardSystem = new UpgradeCardSystem();
+const skillShopManager = new SkillShopManager(unlockManager);
+const itemManager = new ItemManager(unlockManager);
+
 // Game state tracking (para SaveManager)
 let gameStartTime = 0;
 let enemiesKilled = 0;
 let projectilesFired = 0;
+let maxLevelReached = 1;
+
+// 🆕 Estado para cartas de upgrade (quando subir de nível)
+let pendingCardSelection = false;
+let cardOptions: UpgradeCard[] = [];
+let gamePaused = false;
+
+// 🆕 UI de seleção de cartas
+const upgradeSelection = new UpgradeSelection();
+
+// 🆕 Hub (tela principal)
+const hub = new Hub(diamondManager, unlockManager);
+hub.onStartGame(() => initiateGame());
 
 // colors of buttons status
 const BUTTON_IN_COOLDOWN_COLOR = '#203060';
@@ -112,6 +145,16 @@ function resetData() {
     enemiesKilled = 0;
     projectilesFired = 0;
     gameStartTime = Date.now();
+    maxLevelReached = 1;
+    
+    // 🆕 Resetar sistemas de partida
+    levelUpSystem.reset();
+    upgradeCardSystem.reset();
+    skillShopManager.reset();
+    itemManager.reset();
+    pendingCardSelection = false;
+    cardOptions = [];
+    gamePaused = false;
 }
 
 // ELEMENTS HTML
@@ -238,6 +281,21 @@ function handleEnemies(
                     // Track enemies killed
                     enemiesKilled++;
 
+                    // 🆕 Adicionar XP ao sistema de níveis
+                    const leveledUp = levelUpSystem.addXp(enemy.xp);
+                    if (leveledUp) {
+                        // Player subiu de nível - gerar cartas
+                        const newLevel = levelUpSystem.getLevel();
+                        cardOptions = upgradeCardSystem.generateCardOptions(newLevel);
+                        maxLevelReached = Math.max(maxLevelReached, newLevel);
+                        
+                        // 🆕 Mostrar UI de seleção de cartas (pausa o jogo)
+                        handleLevelUp(newLevel, cardOptions);
+                    }
+
+                    // 🆕 Atualizar loja de skills com points atualizados
+                    skillShopManager.updatePoints(scoreValue);
+
                     // remove from scene altogether
                     setTimeout(() => {
                         destroyEnemy(enemiesToHandle, enemy);
@@ -247,6 +305,31 @@ function handleEnemies(
             }
         });
     });
+}
+
+/**
+ * 🆕 Handler para quando player sobe de nível
+ */
+async function handleLevelUp(level: number, cards: UpgradeCard[]): Promise<void> {
+    // Pausar jogo
+    gamePaused = true;
+    pendingCardSelection = true;
+
+    // Mostrar UI de seleção de cartas
+    const selectedCard = await upgradeSelection.show(cards);
+
+    if (selectedCard) {
+        // Aplicar carta escolhida
+        const result = upgradeCardSystem.applyCard(selectedCard);
+        console.log(`✅ Carta selecionada: ${selectedCard.name}`, result);
+        
+        // TODO: Aplicar efeitos nas skills (multiplicadores de dano, velocidade, etc)
+    }
+
+    // Retomar jogo
+    gamePaused = false;
+    pendingCardSelection = false;
+    cardOptions = [];
 }
 
 function destroyEnemy(enemiesToHandleDestroy: Enemy[], enemyToDestroy: Enemy) {
@@ -345,6 +428,23 @@ async function endGame() {
         animationId = null;
     }
 
+    // 🆕 Processar conquistas e adicionar diamonds
+    const now = Date.now();
+    const survivalTime = Math.floor((now - gameStartTime) / 1000);
+    
+    const achievementResult = diamondManager.processAchievements(achievements, {
+        enemiesKilled,
+        survivalTime,
+        levelReached: maxLevelReached,
+        scoreReached: scoreValue,
+        bossKilled: false, // TODO: Implementar bosses
+    });
+
+    if (achievementResult.unlocked.length > 0) {
+        console.log(`✨ Conquistas desbloqueadas! Ganhou ${achievementResult.diamondsGained} diamonds!`);
+        console.log('Conquistas:', achievementResult.unlocked.map(a => a.name));
+    }
+
     // Finalizar sessão no SaveManager
     try {
         await saveManager.endSession(scoreValue, xpValue);
@@ -353,9 +453,19 @@ async function endGame() {
         console.error('Error saving game session:', error);
     }
 
+    // 🆕 Exibir informações no game over
     scoreStartText.innerHTML = scoreValue.toString();
     xpStartText.innerHTML = xpValue.toString();
-    containerStart.style.display = 'flex';
+    
+    // 🆕 Mostrar diamonds ganhos se houver
+    const diamondsGainedText = achievementResult.diamondsGained > 0 
+        ? ` (+${achievementResult.diamondsGained} 💎)` 
+        : '';
+    console.log(`Diamonds totais: ${diamondManager.getTotal()}${diamondsGainedText}`);
+
+    // 🆕 Mostrar Hub ao invés do menu antigo
+    containerStart.style.display = 'none';
+    hub.show();
     gameStatus = GAME_STATUS.END;
 }
 
@@ -364,6 +474,11 @@ const SAVE_UPDATE_INTERVAL = 5000; // 5 segundos
 
 function animate() {
     animationId = requestAnimationFrame(animate);
+
+    // 🆕 Pausar se há seleção de cartas pendente
+    if (pendingCardSelection || gamePaused) {
+        return;
+    }
 
     handleCanvas(canvas);
 
@@ -571,7 +686,21 @@ window.addEventListener('click', (event) => {
 });
 */
 
-startGameButton.addEventListener('click', () => initiateGame());
+// 🆕 Inicializar Hub ao carregar página
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        hub.show();
+    });
+} else {
+    // DOM já carregado
+    hub.show();
+}
+
+// Manter botão antigo como fallback (mas preferir usar Hub)
+startGameButton.addEventListener('click', () => {
+    containerStart.style.display = 'none';
+    initiateGame();
+});
 
 qGameButton.addEventListener('click', () => qHandle());
 wGameButton.addEventListener('click', () => wHandle());
