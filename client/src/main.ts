@@ -17,6 +17,7 @@ import {
     Projectile
 } from './entities';
 import { SaveManager } from './managers/SaveManager';
+import { AutoSkillSystem } from './systems/AutoSkillSystem';
 
 const {
     CANVAS,
@@ -77,6 +78,9 @@ let rCooldown = 0;
 
 // SAVE MANAGER
 const saveManager = new SaveManager();
+
+// AUTO SKILL SYSTEM
+const autoSkillSystem = new AutoSkillSystem(MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y);
 
 // Game state tracking (para SaveManager)
 let gameStartTime = 0;
@@ -367,6 +371,17 @@ function animate() {
 
     handleParticles(particles);
 
+    // 🆕 Processar auto-fire de skills
+    const autoFiredProjectiles = autoSkillSystem.processSkills(
+        Object.values(dataProjectile),
+        enemies,
+        context
+    );
+    
+    // Adicionar projéteis disparados automaticamente
+    projectiles.push(...autoFiredProjectiles);
+    projectilesFired += autoFiredProjectiles.length;
+
     handleProjectiles(projectiles);
 
     handleEnemies(context, enemies, particles, player, projectiles);
@@ -526,6 +541,9 @@ function rHandle() {
 }
 
 // INTERACTION
+// 🚫 Sistema manual desabilitado - Skills agora disparam automaticamente
+// Mantido para referência futura se necessário voltar ao modo manual
+/*
 window.addEventListener('click', (event) => {
     if (gameStatus === GAME_STATUS.START && canFire) {
         const angle = Math.atan2(event.clientY - MIDDLE_SCREEN_Y, event.clientX - MIDDLE_SCREEN_X);
@@ -551,6 +569,7 @@ window.addEventListener('click', (event) => {
         canFire = false;
     }
 });
+*/
 
 startGameButton.addEventListener('click', () => initiateGame());
 

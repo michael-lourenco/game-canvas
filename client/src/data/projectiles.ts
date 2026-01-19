@@ -1,3 +1,10 @@
+export enum FocusType {
+    NEAREST = 'nearest',           // Inimigo mais próximo
+    FARTHEST = 'farthest',         // Inimigo mais distante
+    HIGHEST_HP = 'highest_hp',     // Inimigo com mais HP
+    LOWEST_HP = 'lowest_hp',       // Inimigo com menos HP
+}
+
 export interface ProjectileConfig {
     name: string;
     pierce: number;
@@ -7,6 +14,11 @@ export interface ProjectileConfig {
     currentCoolDown: number;
     radius: number;
     velocity_factor: number;
+    
+    // 🆕 Novos atributos para auto-fire
+    range?: number;                // Distância máxima (0 ou undefined = ilimitado)
+    focus?: FocusType;             // Tipo de foco/alvo (padrão: NEAREST)
+    autoFire?: boolean;            // Se dispara automaticamente (padrão: true)
 }
 
 export const dataProjectile: Record<number, ProjectileConfig> = {
@@ -19,6 +31,9 @@ export const dataProjectile: Record<number, ProjectileConfig> = {
         currentCoolDown: 0,
         radius: 10,
         velocity_factor: 8,
+        range: 500,                    // 🆕 Alcance de 500px
+        focus: FocusType.NEAREST,      // 🆕 Foca no mais próximo
+        autoFire: true,                // 🆕 Auto-fire ativado
     },
     1: {
         name: 'riffle',
@@ -29,6 +44,9 @@ export const dataProjectile: Record<number, ProjectileConfig> = {
         currentCoolDown: 0,
         radius: 10,
         velocity_factor: 30,
+        range: 800,                    // 🆕 Longo alcance
+        focus: FocusType.HIGHEST_HP,   // 🆕 Foca nos mais resistentes
+        autoFire: true,
     },
     2: {
         name: 'shotgun',
@@ -39,6 +57,9 @@ export const dataProjectile: Record<number, ProjectileConfig> = {
         currentCoolDown: 0,
         radius: 20,
         velocity_factor: 7,
+        range: 400,                    // 🆕 Alcance médio
+        focus: FocusType.LOWEST_HP,    // 🆕 Foca nos mais fracos
+        autoFire: true,
     },
     3: {
         name: 'bomb',
@@ -49,5 +70,8 @@ export const dataProjectile: Record<number, ProjectileConfig> = {
         currentCoolDown: 0,
         radius: 50,
         velocity_factor: 5,
+        range: 600,                    // 🆕 Alcance bom
+        focus: FocusType.FARTHEST,     // 🆕 Foca nos mais distantes
+        autoFire: true,
     }
 };
