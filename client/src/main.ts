@@ -31,6 +31,8 @@ import { QuestManager } from './managers/QuestManager';
 import { QuestType } from './data/quests';
 import { RunModifiers } from './managers/RunModifiers';
 import { GameStatsPanel } from './ui/GameStatsPanel';
+import { SkillTooltip } from './ui/SkillTooltip';
+import { additionalSkills } from './data/skills';
 import type { UpgradeCard } from './data/upgradeCards';
 
 const {
@@ -128,6 +130,9 @@ hub.onStartGame(() => initiateGame());
 
 // 🆕 Painel de estatísticas durante partida
 const gameStatsPanel = new GameStatsPanel(unlockManager, itemManager, upgradeCardSystem, runModifiers);
+
+// 🆕 Tooltip de skills
+const skillTooltip = new SkillTooltip();
 
 // colors of buttons status
 const BUTTON_IN_COOLDOWN_COLOR = '#203060';
@@ -367,6 +372,17 @@ async function handleLevelUp(level: number, cards: UpgradeCard[]): Promise<void>
         const result = upgradeCardSystem.applyCard(selectedCard);
         console.log(`✅ Carta selecionada: ${selectedCard.name}`, result);
         
+        // 🆕 Adicionar novas skills se a carta for do tipo NEW_SKILL
+        if (result.newSkills && result.newSkills.length > 0) {
+            result.newSkills.forEach(skillId => {
+                if (additionalSkills[skillId]) {
+                    // Adicionar skill ao dataProjectile
+                    dataProjectile[skillId] = { ...additionalSkills[skillId] };
+                    console.log(`✨ Nova skill adicionada: ${additionalSkills[skillId].name} (ID: ${skillId})`);
+                }
+            });
+        }
+        
         // 🆕 Reaplicar modificadores às skills (incluindo nova carta)
         applyUnlocksToProjectiles();
     }
@@ -464,9 +480,13 @@ function applyUnlocksToProjectiles(): void {
         const skillId = parseInt(key);
         const originalConfig = dataProjectile[skillId];
         
-        // Verificar se skill está desbloqueada
-        if (!unlockManager.isSkillUnlocked(skillId) && skillId >= 3) {
-            // Skills 0, 1, 2 são iniciais, então não aplicar se não desbloqueada
+        // Verificar se skill está desbloqueada ou é inicial (0,1,2) ou foi adicionada via carta
+        const isInitial = skillId < 3;
+        const isUnlocked = unlockManager.isSkillUnlocked(skillId);
+        const wasAddedByCard = additionalSkills[skillId] !== undefined && dataProjectile[skillId] !== undefined;
+        
+        if (!isInitial && !isUnlocked && !wasAddedByCard) {
+            // Skill não disponível
             return;
         }
         
@@ -583,10 +603,16 @@ function animate() {
 
     handleParticles(particles);
 
-    // 🆕 Processar auto-fire de skills (apenas desbloqueadas)
-    const availableSkills = Object.values(dataProjectile).filter((skill, index) => {
-        return unlockManager.isSkillUnlocked(index) || index < 3; // Skills 0,1,2 são iniciais
-    });
+    // 🆕 Processar auto-fire de skills (apenas desbloqueadas ou adicionadas via carta)
+    const availableSkills = Object.entries(dataProjectile)
+        .filter(([skillIdStr, skill]) => {
+            const skillId = parseInt(skillIdStr);
+            const isInitial = skillId < 3;
+            const isUnlocked = unlockManager.isSkillUnlocked(skillId);
+            const wasAddedByCard = additionalSkills[skillId] !== undefined;
+            return isInitial || isUnlocked || wasAddedByCard;
+        })
+        .map(([, skill]) => skill);
     
     const autoFiredProjectiles = autoSkillSystem.processSkills(
         availableSkills,
@@ -810,6 +836,41 @@ qGameButton.addEventListener('click', () => qHandle());
 wGameButton.addEventListener('click', () => wHandle());
 eGameButton.addEventListener('click', () => eHandle());
 rGameButton.addEventListener('click', () => rHandle());
+
+// 🆕 Tooltips para skills
+function setupSkillTooltips(): void {
+    const buttons = [
+        { button: qGameButton, skillId: 0 },
+        { button: wGameButton, skillId: 1 },
+        { button: eGameButton, skillId: 2 },
+        { button: rGameButton, skillId: 3 },
+    ];
+
+    buttons.forEach(({ button, skillId }) => {
+        button.addEventListener('mouseenter', (e) => {
+            if (gameStatus === GAME_STATUS.START && dataProjectile[skillId]) {
+                skillTooltip.show(skillId, dataProjectile[skillId], runModifiers, e as MouseEvent);
+            }
+        });
+
+        button.addEventListener('mousemove', (e) => {
+            if (gameStatus === GAME_STATUS.START && dataProjectile[skillId]) {
+                skillTooltip.update(skillId, dataProjectile[skillId], runModifiers, e as MouseEvent);
+            }
+        });
+
+        button.addEventListener('mouseleave', () => {
+            skillTooltip.hide();
+        });
+    });
+}
+
+// Inicializar tooltips quando DOM estiver pronto
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupSkillTooltips);
+} else {
+    setupSkillTooltips();
+}
 
 window.addEventListener('keyup', (event) => {
     // q = 81
