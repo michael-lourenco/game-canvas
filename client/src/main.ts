@@ -27,6 +27,8 @@ import { UpgradeCardSystem } from './systems/UpgradeCardSystem';
 import { achievements } from './data/achievements';
 import { UpgradeSelection } from './ui/UpgradeSelection';
 import { Hub } from './ui/Hub';
+import { QuestManager } from './managers/QuestManager';
+import { QuestType } from './data/quests';
 import type { UpgradeCard } from './data/upgradeCards';
 
 const {
@@ -95,6 +97,7 @@ const autoSkillSystem = new AutoSkillSystem(MIDDLE_SCREEN_X, MIDDLE_SCREEN_Y);
 // 🆕 META PROGRESSÃO
 const diamondManager = new DiamondManager();
 const unlockManager = new UnlockManager(diamondManager);
+const questManager = new QuestManager(diamondManager);
 
 // 🆕 SISTEMAS DE PARTIDA
 const levelUpSystem = new LevelUpSystem();
@@ -117,7 +120,7 @@ let gamePaused = false;
 const upgradeSelection = new UpgradeSelection();
 
 // 🆕 Hub (tela principal)
-const hub = new Hub(diamondManager, unlockManager);
+const hub = new Hub(diamondManager, unlockManager, questManager);
 hub.onStartGame(() => initiateGame());
 
 // colors of buttons status
@@ -281,6 +284,15 @@ function handleEnemies(
                     // Track enemies killed
                     enemiesKilled++;
 
+                    // 🆕 Atualizar progresso de quests (kill enemies)
+                    questManager.updateProgress(QuestType.KILL_ENEMIES, 1, {
+                        enemiesKilled,
+                        survivalTime: Math.floor((Date.now() - gameStartTime) / 1000),
+                        levelReached: levelUpSystem.getLevel(),
+                        scoreReached: scoreValue,
+                        pointsCollected: scoreValue,
+                    });
+
                     // 🆕 Adicionar XP ao sistema de níveis
                     const leveledUp = levelUpSystem.addXp(enemy.xp);
                     if (leveledUp) {
@@ -289,12 +301,37 @@ function handleEnemies(
                         cardOptions = upgradeCardSystem.generateCardOptions(newLevel);
                         maxLevelReached = Math.max(maxLevelReached, newLevel);
                         
+                        // 🆕 Atualizar quests de nível
+                        questManager.updateProgress(QuestType.REACH_LEVEL, newLevel, {
+                            enemiesKilled,
+                            survivalTime: Math.floor((Date.now() - gameStartTime) / 1000),
+                            levelReached: newLevel,
+                            scoreReached: scoreValue,
+                            pointsCollected: scoreValue,
+                        });
+                        
                         // 🆕 Mostrar UI de seleção de cartas (pausa o jogo)
                         handleLevelUp(newLevel, cardOptions);
                     }
 
                     // 🆕 Atualizar loja de skills com points atualizados
                     skillShopManager.updatePoints(scoreValue);
+                    
+                    // 🆕 Atualizar quests de score e points
+                    questManager.updateProgress(QuestType.REACH_SCORE, scoreValue, {
+                        enemiesKilled,
+                        survivalTime: Math.floor((Date.now() - gameStartTime) / 1000),
+                        levelReached: levelUpSystem.getLevel(),
+                        scoreReached: scoreValue,
+                        pointsCollected: scoreValue,
+                    });
+                    questManager.updateProgress(QuestType.COLLECT_POINTS, scoreValue, {
+                        enemiesKilled,
+                        survivalTime: Math.floor((Date.now() - gameStartTime) / 1000),
+                        levelReached: levelUpSystem.getLevel(),
+                        scoreReached: scoreValue,
+                        pointsCollected: scoreValue,
+                    });
 
                     // remove from scene altogether
                     setTimeout(() => {
@@ -440,9 +477,23 @@ async function endGame() {
         bossKilled: false, // TODO: Implementar bosses
     });
 
+    // 🆕 Processar quests finais (survival time, level, score)
+    const questResult = questManager.updateProgress(QuestType.SURVIVE_TIME, survivalTime, {
+        enemiesKilled,
+        survivalTime,
+        levelReached: maxLevelReached,
+        scoreReached: scoreValue,
+        pointsCollected: scoreValue,
+    });
+
     if (achievementResult.unlocked.length > 0) {
         console.log(`✨ Conquistas desbloqueadas! Ganhou ${achievementResult.diamondsGained} diamonds!`);
         console.log('Conquistas:', achievementResult.unlocked.map(a => a.name));
+    }
+
+    if (questResult.completed.length > 0) {
+        console.log(`🎯 Quests completadas! Ganhou ${questResult.diamondsGained} diamonds!`);
+        console.log('Quests:', questResult.completed.map(q => q.name));
     }
 
     // Finalizar sessão no SaveManager

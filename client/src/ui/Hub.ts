@@ -1,6 +1,8 @@
 import { DiamondManager } from '../managers/DiamondManager';
 import { UnlockManager } from '../managers/UnlockManager';
+import { QuestManager } from '../managers/QuestManager';
 import { unlockData, Unlock } from '../data/unlocks';
+import { QuestPanel } from './QuestPanel';
 
 /**
  * Tela principal (Hub) - Meta progressão
@@ -9,11 +11,15 @@ export class Hub {
     private container: HTMLElement | null = null;
     private diamondManager: DiamondManager;
     private unlockManager: UnlockManager;
+    private questManager: QuestManager;
+    private questPanel: QuestPanel;
     private onStartGameCallback: (() => void) | null = null;
 
-    constructor(diamondManager: DiamondManager, unlockManager: UnlockManager) {
+    constructor(diamondManager: DiamondManager, unlockManager: UnlockManager, questManager: QuestManager) {
         this.diamondManager = diamondManager;
         this.unlockManager = unlockManager;
+        this.questManager = questManager;
+        this.questPanel = new QuestPanel(questManager);
     }
 
     /**
@@ -140,11 +146,32 @@ export class Hub {
             this.showUnlocks();
         };
 
+        // Botão Quests
+        const questsButton = document.createElement('button');
+        questsButton.textContent = '🎯 Quests';
+        questsButton.style.cssText = `
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            transition: background 0.3s;
+        `;
+        questsButton.onmouseenter = () => { questsButton.style.background = '#F57C00'; };
+        questsButton.onmouseleave = () => { questsButton.style.background = '#FF9800'; };
+        questsButton.onclick = () => {
+            this.questPanel.show();
+        };
+
         container.appendChild(title);
         container.appendChild(diamondsContainer);
         container.appendChild(statsContainer);
         container.appendChild(startButton);
         container.appendChild(unlocksButton);
+        container.appendChild(questsButton);
 
         document.body.appendChild(container);
         this.container = container;
