@@ -101,13 +101,21 @@ export class AutoSkillSystem {
         // Criar velocidade
         const velocity = createVelocity(angle, skill.velocity_factor);
 
-        // Criar projétil
+        // Criar projétil (skill já tem modificadores aplicados)
         return new Projectile(
             context,
             this.playerX,
             this.playerY,
             velocity,
-            skill
+            {
+                name: skill.name,
+                pierce: skill.pierce || 0,
+                attack: skill.attack,
+                color: skill.color,
+                cooldown: skill.cooldown,
+                radius: skill.radius,
+                velocity_factor: skill.velocity_factor,
+            }
         );
     }
 }

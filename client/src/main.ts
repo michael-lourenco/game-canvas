@@ -29,6 +29,8 @@ import { UpgradeSelection } from './ui/UpgradeSelection';
 import { Hub } from './ui/Hub';
 import { QuestManager } from './managers/QuestManager';
 import { QuestType } from './data/quests';
+import { RunModifiers } from './managers/RunModifiers';
+import { GameStatsPanel } from './ui/GameStatsPanel';
 import type { UpgradeCard } from './data/upgradeCards';
 
 const {
@@ -104,6 +106,7 @@ const levelUpSystem = new LevelUpSystem();
 const upgradeCardSystem = new UpgradeCardSystem();
 const skillShopManager = new SkillShopManager(unlockManager);
 const itemManager = new ItemManager(unlockManager);
+const runModifiers = new RunModifiers(unlockManager, itemManager, upgradeCardSystem);
 
 // Game state tracking (para SaveManager)
 let gameStartTime = 0;
@@ -122,6 +125,9 @@ const upgradeSelection = new UpgradeSelection();
 // 🆕 Hub (tela principal)
 const hub = new Hub(diamondManager, unlockManager, questManager);
 hub.onStartGame(() => initiateGame());
+
+// 🆕 Painel de estatísticas durante partida
+const gameStatsPanel = new GameStatsPanel(unlockManager, itemManager, upgradeCardSystem, runModifiers);
 
 // colors of buttons status
 const BUTTON_IN_COOLDOWN_COLOR = '#203060';
@@ -155,6 +161,7 @@ function resetData() {
     upgradeCardSystem.reset();
     skillShopManager.reset();
     itemManager.reset();
+    runModifiers.reset();
     pendingCardSelection = false;
     cardOptions = [];
     gamePaused = false;
@@ -360,7 +367,8 @@ async function handleLevelUp(level: number, cards: UpgradeCard[]): Promise<void>
         const result = upgradeCardSystem.applyCard(selectedCard);
         console.log(`✅ Carta selecionada: ${selectedCard.name}`, result);
         
-        // TODO: Aplicar efeitos nas skills (multiplicadores de dano, velocidade, etc)
+        // 🆕 Reaplicar modificadores às skills (incluindo nova carta)
+        applyUnlocksToProjectiles();
     }
 
     // Retomar jogo
@@ -446,10 +454,45 @@ function handleCanvas(canvasToHandle: Canvas) {
     context.fillRect(0, 0, width, height);
 }
 
+// 🆕 Aplicar unlocks e modificadores aos projéteis
+function applyUnlocksToProjectiles(): void {
+    // Recalcular modificadores
+    runModifiers.calculateModifiers();
+    
+    // Aplicar modificadores a cada skill disponível
+    Object.keys(dataProjectile).forEach(key => {
+        const skillId = parseInt(key);
+        const originalConfig = dataProjectile[skillId];
+        
+        // Verificar se skill está desbloqueada
+        if (!unlockManager.isSkillUnlocked(skillId) && skillId >= 3) {
+            // Skills 0, 1, 2 são iniciais, então não aplicar se não desbloqueada
+            return;
+        }
+        
+        // Aplicar modificadores
+        const modified = runModifiers.applyToProjectileConfig(originalConfig);
+        
+        // Atualizar configuração (preservar currentCoolDown)
+        dataProjectile[skillId] = {
+            ...modified,
+            currentCoolDown: originalConfig.currentCoolDown,
+        };
+    });
+    
+    console.log('✅ Unlocks e modificadores aplicados às skills!', runModifiers.getModifiers());
+}
+
 // CORE FUNCTIONS
 async function initiateGame() {
     resetData();
     resetHtmlElements();
+    
+    // 🆕 Aplicar unlocks e modificadores antes de iniciar
+    applyUnlocksToProjectiles();
+    
+    // 🆕 Mostrar painel de estatísticas
+    gameStatsPanel.show();
     
     // Iniciar sessão no SaveManager
     await saveManager.startSession();
@@ -460,6 +503,9 @@ async function initiateGame() {
 }
 
 async function endGame() {
+    // 🆕 Esconder painel de estatísticas
+    gameStatsPanel.hide();
+    
     if (animationId !== null) {
         cancelAnimationFrame(animationId);
         animationId = null;
@@ -537,9 +583,13 @@ function animate() {
 
     handleParticles(particles);
 
-    // 🆕 Processar auto-fire de skills
+    // 🆕 Processar auto-fire de skills (apenas desbloqueadas)
+    const availableSkills = Object.values(dataProjectile).filter((skill, index) => {
+        return unlockManager.isSkillUnlocked(index) || index < 3; // Skills 0,1,2 são iniciais
+    });
+    
     const autoFiredProjectiles = autoSkillSystem.processSkills(
-        Object.values(dataProjectile),
+        availableSkills,
         enemies,
         context
     );
@@ -551,6 +601,9 @@ function animate() {
     handleProjectiles(projectiles);
 
     handleEnemies(context, enemies, particles, player, projectiles);
+
+    // 🆕 Atualizar painel de estatísticas (a cada frame)
+    gameStatsPanel.update();
 
     // Atualizar SaveManager periodicamente (a cada 5 segundos)
     const now = Date.now();
