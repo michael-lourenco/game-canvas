@@ -32,6 +32,8 @@ import { QuestType } from './data/quests';
 import { RunModifiers } from './managers/RunModifiers';
 import { GameStatsPanel } from './ui/GameStatsPanel';
 import { SkillTooltip } from './ui/SkillTooltip';
+import { InGameShop } from './ui/InGameShop';
+import { InGameShopManager } from './managers/InGameShopManager';
 import { additionalSkills } from './data/skills';
 import type { UpgradeCard } from './data/upgradeCards';
 
@@ -70,6 +72,8 @@ const rGameTimer = document.querySelector('#rGameTimer') as HTMLElement;
 const containerStart = document.querySelector('#containerStart') as HTMLElement;
 const scoreStartText = document.querySelector('#scoreStartText') as HTMLElement;
 const xpStartText = document.querySelector('#xpStartText') as HTMLElement;
+const shopButton = document.querySelector('#shopButton') as HTMLButtonElement;
+const statsIcon = document.querySelector('#containerStatsIcon') as HTMLElement;
 
 // CREATE COORDINATES X AND Y ON SCREEN / CANVAS
 const MIDDLE_SCREEN_X = canvas.width / 2;
@@ -109,6 +113,7 @@ const upgradeCardSystem = new UpgradeCardSystem();
 const skillShopManager = new SkillShopManager(unlockManager);
 const itemManager = new ItemManager(unlockManager);
 const runModifiers = new RunModifiers(unlockManager, itemManager, upgradeCardSystem);
+const inGameShopManager = new InGameShopManager();
 
 // Game state tracking (para SaveManager)
 let gameStartTime = 0;
@@ -120,6 +125,7 @@ let maxLevelReached = 1;
 let pendingCardSelection = false;
 let cardOptions: UpgradeCard[] = [];
 let gamePaused = false;
+let shopOpen = false;
 
 // 🆕 UI de seleção de cartas
 const upgradeSelection = new UpgradeSelection();
@@ -133,6 +139,14 @@ const gameStatsPanel = new GameStatsPanel(unlockManager, itemManager, upgradeCar
 
 // 🆕 Tooltip de skills
 const skillTooltip = new SkillTooltip();
+
+// 🆕 Loja de skills durante partida
+const inGameShop = new InGameShop(inGameShopManager);
+inGameShop.onPurchase((skillId) => {
+    // Aplicar modificadores à skill recém-comprada
+    applyUnlocksToProjectiles();
+    console.log(`✅ Skill comprada: ${skillId}`);
+});
 
 // colors of buttons status
 const BUTTON_IN_COOLDOWN_COLOR = '#203060';
@@ -167,9 +181,31 @@ function resetData() {
     skillShopManager.reset();
     itemManager.reset();
     runModifiers.reset();
+    inGameShopManager.reset();
+    inGameShop.hide();
+    shopOpen = false;
     pendingCardSelection = false;
     cardOptions = [];
     gamePaused = false;
+    
+    // 🆕 Esconder botão da loja e ícone de estatísticas no reset
+    if (shopButton) {
+        shopButton.style.display = 'none';
+    }
+    if (statsIcon) {
+        statsIcon.style.display = 'none';
+    }
+    
+    // 🆕 Remover todas as skills exceto Gun (0) - apenas Gun disponível no início
+    const gunConfig = dataProjectile[0];
+    Object.keys(dataProjectile).forEach(key => {
+        const skillId = parseInt(key);
+        if (skillId !== 0) {
+            delete dataProjectile[skillId];
+        }
+    });
+    // Garantir que Gun está presente
+    dataProjectile[0] = gunConfig;
 }
 
 // ELEMENTS HTML
@@ -179,10 +215,20 @@ function resetHtmlElements() {
     xp.innerHTML = ECONOMY_INITIAL.XP.toString();
     scoreStartText.innerHTML = ECONOMY_INITIAL.SCORE.toString();
     xpStartText.innerHTML = ECONOMY_INITIAL.XP.toString();
-    qGameButton.innerHTML = dataProjectile[0].name;
-    wGameButton.innerHTML = dataProjectile[1].name;
-    eGameButton.innerHTML = dataProjectile[2].name;
-    rGameButton.innerHTML = dataProjectile[3].name;
+    
+    // 🆕 Atualizar botões apenas com skills disponíveis
+    qGameButton.innerHTML = dataProjectile[0]?.name || 'gun';
+    wGameButton.innerHTML = dataProjectile[1]?.name || 'riffle';
+    eGameButton.innerHTML = dataProjectile[2]?.name || 'shotgun';
+    rGameButton.innerHTML = dataProjectile[3]?.name || 'bomb';
+    
+    // 🆕 Mostrar botão da loja e ícone de estatísticas durante a partida
+    if (shopButton) {
+        shopButton.style.display = 'block';
+    }
+    if (statsIcon) {
+        statsIcon.style.display = 'block';
+    }
 }
 
 // PLAYER
@@ -295,6 +341,10 @@ function handleEnemies(
 
                     // Track enemies killed
                     enemiesKilled++;
+
+                    // 🆕 Atualizar loja de skills com points atualizados
+                    skillShopManager.updatePoints(scoreValue);
+                    inGameShopManager.updatePoints(scoreValue);
 
                     // 🆕 Atualizar progresso de quests (kill enemies)
                     questManager.updateProgress(QuestType.KILL_ENEMIES, 1, {
@@ -480,12 +530,17 @@ function applyUnlocksToProjectiles(): void {
         const skillId = parseInt(key);
         const originalConfig = dataProjectile[skillId];
         
-        // Verificar se skill está desbloqueada ou é inicial (0,1,2) ou foi adicionada via carta
-        const isInitial = skillId < 3;
+        // Verificar se skill está disponível:
+        // - Gun (0) sempre disponível
+        // - Skills compradas na loja
+        // - Skills desbloqueadas permanentemente
+        // - Skills adicionadas via carta
+        const isGun = skillId === 0;
+        const isPurchased = inGameShopManager.isPurchased(skillId);
         const isUnlocked = unlockManager.isSkillUnlocked(skillId);
         const wasAddedByCard = additionalSkills[skillId] !== undefined && dataProjectile[skillId] !== undefined;
         
-        if (!isInitial && !isUnlocked && !wasAddedByCard) {
+        if (!isGun && !isPurchased && !isUnlocked && !wasAddedByCard) {
             // Skill não disponível
             return;
         }
@@ -505,8 +560,8 @@ function applyUnlocksToProjectiles(): void {
 
 // CORE FUNCTIONS
 async function initiateGame() {
-    resetData();
-    resetHtmlElements();
+    resetData(); // Resetar primeiro (remove skills exceto Gun)
+    resetHtmlElements(); // Depois atualizar HTML
     
     // 🆕 Aplicar unlocks e modificadores antes de iniciar
     applyUnlocksToProjectiles();
@@ -592,8 +647,8 @@ const SAVE_UPDATE_INTERVAL = 5000; // 5 segundos
 function animate() {
     animationId = requestAnimationFrame(animate);
 
-    // 🆕 Pausar se há seleção de cartas pendente
-    if (pendingCardSelection || gamePaused) {
+    // 🆕 Pausar se há seleção de cartas pendente ou loja aberta
+    if (pendingCardSelection || gamePaused || shopOpen) {
         return;
     }
 
@@ -603,14 +658,19 @@ function animate() {
 
     handleParticles(particles);
 
-    // 🆕 Processar auto-fire de skills (apenas desbloqueadas ou adicionadas via carta)
+    // 🆕 Processar auto-fire de skills (apenas compradas na loja ou adicionadas via carta)
     const availableSkills = Object.entries(dataProjectile)
         .filter(([skillIdStr, skill]) => {
             const skillId = parseInt(skillIdStr);
-            const isInitial = skillId < 3;
-            const isUnlocked = unlockManager.isSkillUnlocked(skillId);
-            const wasAddedByCard = additionalSkills[skillId] !== undefined;
-            return isInitial || isUnlocked || wasAddedByCard;
+            // Gun (0) sempre disponível
+            if (skillId === 0) return true;
+            // Skills compradas na loja
+            if (inGameShopManager.isPurchased(skillId)) return true;
+            // Skills adicionadas via carta
+            if (additionalSkills[skillId] !== undefined) return true;
+            // Skills desbloqueadas permanentemente (meta progressão)
+            if (unlockManager.isSkillUnlocked(skillId)) return true;
+            return false;
         })
         .map(([, skill]) => skill);
     
@@ -630,6 +690,11 @@ function animate() {
 
     // 🆕 Atualizar painel de estatísticas (a cada frame)
     gameStatsPanel.update();
+    
+    // 🆕 Atualizar loja se estiver aberta (para atualizar points)
+    if (shopOpen) {
+        inGameShop.updateDisplay();
+    }
 
     // Atualizar SaveManager periodicamente (a cada 5 segundos)
     const now = Date.now();
@@ -677,63 +742,81 @@ function watchCooldowns() {
             }
 
             // wCooldown
-            if (projectileToFire === dataProjectile[1]) {
-                wGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
+            if (dataProjectile[1]) {
+                if (projectileToFire === dataProjectile[1]) {
+                    wGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
+                } else {
+                    wGameButton.style.backgroundColor = BUTTON_STANDARD_COLOR;
+                }
+
+                if (dataProjectile[1].currentCoolDown < dataProjectile[1].cooldown) {
+                    wGameTimer.innerHTML = (dataProjectile[1].cooldown - dataProjectile[1].currentCoolDown).toString();
+                    dataProjectile[1].currentCoolDown++;
+                    wGameTimer.style.backgroundColor = BUTTON_IN_COOLDOWN_COLOR;
+                } else if (projectileToFire === dataProjectile[1] && dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown) {
+                    canFire = true;
+                    wGameTimer.innerHTML = "";
+                    wGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                } else {
+                    wGameTimer.innerHTML = "";
+                    wGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                }
             } else {
                 wGameButton.style.backgroundColor = BUTTON_STANDARD_COLOR;
-            }
-
-            if (dataProjectile[1].currentCoolDown < dataProjectile[1].cooldown) {
-                wGameTimer.innerHTML = (dataProjectile[1].cooldown - dataProjectile[1].currentCoolDown).toString();
-                dataProjectile[1].currentCoolDown++;
-                wGameTimer.style.backgroundColor = BUTTON_IN_COOLDOWN_COLOR;
-            } else if (projectileToFire === dataProjectile[1] && dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown) {
-                canFire = true;
                 wGameTimer.innerHTML = "";
-                wGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
-            } else {
-                wGameTimer.innerHTML = "";
-                wGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                wGameTimer.style.backgroundColor = BUTTON_STANDARD_COLOR;
             }
 
             // eCooldown
-            if (projectileToFire === dataProjectile[2]) {
-                eGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
+            if (dataProjectile[2]) {
+                if (projectileToFire === dataProjectile[2]) {
+                    eGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
+                } else {
+                    eGameButton.style.backgroundColor = BUTTON_STANDARD_COLOR;
+                }
+
+                if (dataProjectile[2].currentCoolDown < dataProjectile[2].cooldown) {
+                    eGameTimer.innerHTML = (dataProjectile[2].cooldown - dataProjectile[2].currentCoolDown).toString();
+                    dataProjectile[2].currentCoolDown++;
+                    eGameTimer.style.backgroundColor = BUTTON_IN_COOLDOWN_COLOR;
+                } else if (projectileToFire === dataProjectile[2] && dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown) {
+                    canFire = true;
+                    eGameTimer.innerHTML = "";
+                    eGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                } else {
+                    eGameTimer.innerHTML = "";
+                    eGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                }
             } else {
                 eGameButton.style.backgroundColor = BUTTON_STANDARD_COLOR;
-            }
-
-            if (dataProjectile[2].currentCoolDown < dataProjectile[2].cooldown) {
-                eGameTimer.innerHTML = (dataProjectile[2].cooldown - dataProjectile[2].currentCoolDown).toString();
-                dataProjectile[2].currentCoolDown++;
-                eGameTimer.style.backgroundColor = BUTTON_IN_COOLDOWN_COLOR;
-            } else if (projectileToFire === dataProjectile[2] && dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown) {
-                canFire = true;
                 eGameTimer.innerHTML = "";
-                eGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
-            } else {
-                eGameTimer.innerHTML = "";
-                eGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                eGameTimer.style.backgroundColor = BUTTON_STANDARD_COLOR;
             }
 
             // rCooldown
-            if (projectileToFire === dataProjectile[3]) {
-                rGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
+            if (dataProjectile[3]) {
+                if (projectileToFire === dataProjectile[3]) {
+                    rGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
+                } else {
+                    rGameButton.style.backgroundColor = BUTTON_STANDARD_COLOR;
+                }
+
+                if (dataProjectile[3].currentCoolDown < dataProjectile[3].cooldown) {
+                    rGameTimer.innerHTML = (dataProjectile[3].cooldown - dataProjectile[3].currentCoolDown).toString();
+                    dataProjectile[3].currentCoolDown++;
+                    rGameTimer.style.backgroundColor = BUTTON_IN_COOLDOWN_COLOR;
+                } else if (projectileToFire === dataProjectile[3] && dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown) {
+                    canFire = true;
+                    rGameTimer.innerHTML = "";
+                    rGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                } else {
+                    rGameTimer.innerHTML = "";
+                    rGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                }
             } else {
                 rGameButton.style.backgroundColor = BUTTON_STANDARD_COLOR;
-            }
-
-            if (dataProjectile[3].currentCoolDown < dataProjectile[3].cooldown) {
-                rGameTimer.innerHTML = (dataProjectile[3].cooldown - dataProjectile[3].currentCoolDown).toString();
-                dataProjectile[3].currentCoolDown++;
-                rGameTimer.style.backgroundColor = BUTTON_IN_COOLDOWN_COLOR;
-            } else if (projectileToFire === dataProjectile[3] && dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown) {
-                canFire = true;
                 rGameTimer.innerHTML = "";
-                rGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
-            } else {
-                rGameTimer.innerHTML = "";
-                rGameTimer.style.backgroundColor = BUTTON_CANFIRE_COLOR;
+                rGameTimer.style.backgroundColor = BUTTON_STANDARD_COLOR;
             }
         } else {
             if (cooldownIntervalId) {
@@ -756,6 +839,7 @@ function qHandle() {
 }
 
 function wHandle() {
+    if (!dataProjectile[1]) return;
     chooseProjectile(1, dataProjectile);
     wGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
     if (dataProjectile[1].currentCoolDown >= dataProjectile[1].cooldown) {
@@ -766,6 +850,7 @@ function wHandle() {
 }
 
 function eHandle() {
+    if (!dataProjectile[2]) return;
     chooseProjectile(2, dataProjectile);
     eGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
     if (dataProjectile[2].currentCoolDown >= dataProjectile[2].cooldown) {
@@ -776,6 +861,7 @@ function eHandle() {
 }
 
 function rHandle() {
+    if (!dataProjectile[3]) return;
     chooseProjectile(3, dataProjectile);
     rGameButton.style.backgroundColor = BUTTON_CHOOSED_COLOR;
     if (dataProjectile[3].currentCoolDown >= dataProjectile[3].cooldown) {
@@ -870,6 +956,41 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupSkillTooltips);
 } else {
     setupSkillTooltips();
+}
+
+// 🆕 Função para abrir/fechar loja
+function toggleShop(): void {
+    if (gameStatus === GAME_STATUS.START) {
+        shopOpen = !shopOpen;
+        if (shopOpen) {
+            inGameShop.show();
+            gamePaused = true; // Pausar jogo quando loja está aberta
+        } else {
+            inGameShop.hide();
+            gamePaused = false; // Retomar jogo
+        }
+    }
+}
+
+// 🆕 Abrir/fechar loja com tecla P
+window.addEventListener('keydown', (event) => {
+    if (event.key === 'p' || event.key === 'P') {
+        toggleShop();
+    }
+    
+    // Fechar loja com ESC
+    if (event.key === 'Escape' && shopOpen) {
+        shopOpen = false;
+        inGameShop.hide();
+        gamePaused = false;
+    }
+});
+
+// 🆕 Botão da loja
+if (shopButton) {
+    shopButton.addEventListener('click', () => {
+        toggleShop();
+    });
 }
 
 window.addEventListener('keyup', (event) => {

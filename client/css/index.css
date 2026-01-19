@@ -16,6 +16,49 @@ body {
     font-size: 17px;
 }
 
+.statsIcon {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: none;
+}
+
+.statsIcon:hover {
+    transform: scale(1.2);
+}
+
+.shopButton {
+    float: left;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 8px 0 8px 8px;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.shopButton:hover {
+    background: linear-gradient(135deg, #45a049 0%, #4CAF50 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+}
+
+.shopButton:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 #containerStart {
     position: fixed;
     left: 50%;

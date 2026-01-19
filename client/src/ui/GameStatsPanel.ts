@@ -27,11 +27,11 @@ export class GameStatsPanel {
     }
 
     /**
-     * Criar e mostrar painel
+     * Criar painel (mas não mostrar ainda - será mostrado no hover)
      */
     show(): void {
         if (this.container) {
-            this.container.style.display = 'block';
+            // Container já existe, apenas garantir que está criado
             return;
         }
 
@@ -39,10 +39,10 @@ export class GameStatsPanel {
         container.id = 'gameStatsPanel';
         container.style.cssText = `
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 60px;
+            left: 0;
             width: 250px;
-            background: rgba(26, 26, 46, 0.9);
+            background: rgba(26, 26, 46, 0.95);
             border: 2px solid #4CAF50;
             border-radius: 12px;
             padding: 15px;
@@ -50,6 +50,9 @@ export class GameStatsPanel {
             font-family: Arial, sans-serif;
             z-index: 1000;
             backdrop-filter: blur(10px);
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         `;
 
         // Título
@@ -72,6 +75,59 @@ export class GameStatsPanel {
 
         document.body.appendChild(container);
         this.container = container;
+        
+        // Configurar hover no ícone de estatísticas
+        this.setupHover();
+    }
+    
+    /**
+     * Configurar hover para mostrar/esconder painel
+     */
+    private setupHover(): void {
+        const statsIcon = document.getElementById('containerStatsIcon');
+        if (!statsIcon || !this.container) return;
+        
+        statsIcon.addEventListener('mouseenter', () => {
+            if (this.container) {
+                this.container.style.display = 'block';
+                setTimeout(() => {
+                    if (this.container) {
+                        this.container.style.opacity = '1';
+                    }
+                }, 10);
+            }
+        });
+        
+        statsIcon.addEventListener('mouseleave', () => {
+            if (this.container) {
+                this.container.style.opacity = '0';
+                setTimeout(() => {
+                    if (this.container) {
+                        this.container.style.display = 'none';
+                    }
+                }, 300);
+            }
+        });
+        
+        // Também manter visível quando mouse está sobre o painel
+        if (this.container) {
+            this.container.addEventListener('mouseenter', () => {
+                if (this.container) {
+                    this.container.style.opacity = '1';
+                }
+            });
+            
+            this.container.addEventListener('mouseleave', () => {
+                if (this.container) {
+                    this.container.style.opacity = '0';
+                    setTimeout(() => {
+                        if (this.container) {
+                            this.container.style.display = 'none';
+                        }
+                    }, 300);
+                }
+            });
+        }
     }
 
     /**
